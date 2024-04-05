@@ -1,0 +1,10 @@
+version: v1
+name: buf.build/proto-rest-api/respapis
+breaking:
+  use:
+    - FILE
+lint:
+  use:
+    - DEFAULT
+  except:
+    - PACKAGE_VERSION_SUFFIX

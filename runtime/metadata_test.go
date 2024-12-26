@@ -5,72 +5,54 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/metadata"
-
 	"github.com/merzzzl/proto-rest-api/runtime"
 )
 
-func TestValidateMD_0(t *testing.T) {
-	t.Parallel()
+func TestValidateMD(t *testing.T) {
+	t.Run("valid metadata", func(t *testing.T) {
+		md := metadata.MD{
+			"key": []string{"value1", "value2"},
+			"another-key": []string{"value"},
+		}
 
-	md := metadata.MD{
-		"key": []string{"value"},
-	}
+		err := runtime.ValidateMD(md)
+		require.NoError(t, err, "ValidateMD should not return an error for valid metadata")
+	})
 
-	err := runtime.ValidateMD(md)
-	require.NoError(t, err)
-}
+	t.Run("empty header key", func(t *testing.T) {
+		md := metadata.MD{
+			"": []string{"value"},
+		}
 
-func TestValidateMD_1(t *testing.T) {
-	t.Parallel()
+		err := runtime.ValidateMD(md)
+		require.ErrorIs(t, err, runtime.ErrEmptyHeaderKey, "ValidateMD should return ErrEmptyHeaderKey for empty key")
+	})
 
-	md := metadata.MD{
-		"key with space": []string{"value"},
-	}
+	t.Run("non-printable characters in value", func(t *testing.T) {
+		md := metadata.MD{
+			"key": []string{"value1", "val\x01ue2"},
+		}
 
-	err := runtime.ValidateMD(md)
-	require.ErrorIs(t, err, runtime.ErrContainsIllegal)
-}
+		err := runtime.ValidateMD(md)
+		require.ErrorIs(t, err, runtime.ErrContainsNonPrintables, "ValidateMD should return ErrContainsNonPrintables for non-printable characters")
+	})
 
-func TestValidateMD_2(t *testing.T) {
-	t.Parallel()
+	t.Run("illegal characters in key", func(t *testing.T) {
+		md := metadata.MD{
+			"invalid:key": []string{"value"},
+		}
 
-	md := metadata.MD{
-		"key": []string{"value\twith non printables"},
-	}
+		err := runtime.ValidateMD(md)
+		require.Error(t, err, "ValidateMD should return an error for illegal characters in key")
+		require.Contains(t, err.Error(), runtime.ErrContainsIllegal.Error(), "error should contain ErrContainsIllegal message")
+	})
 
-	err := runtime.ValidateMD(md)
-	require.ErrorIs(t, err, runtime.ErrContainsNonPrintables)
-}
+	t.Run("binary key suffix", func(t *testing.T) {
+		md := metadata.MD{
+			"key-bin": []string{"binarydata"},
+		}
 
-func TestValidateMD_3(t *testing.T) {
-	t.Parallel()
-
-	md := metadata.MD{
-		":": []string{"value\twith non printables"},
-	}
-
-	err := runtime.ValidateMD(md)
-	require.NoError(t, err)
-}
-
-func TestValidateMD_4(t *testing.T) {
-	t.Parallel()
-
-	md := metadata.MD{
-		"": []string{"value"},
-	}
-
-	err := runtime.ValidateMD(md)
-	require.ErrorIs(t, err, runtime.ErrEmptyHeaderKey)
-}
-
-func TestValidateMD_5(t *testing.T) {
-	t.Parallel()
-
-	md := metadata.MD{
-		"key-bin": []string{"some\tbin\tdata"},
-	}
-
-	err := runtime.ValidateMD(md)
-	require.NoError(t, err)
+		err := runtime.ValidateMD(md)
+		require.NoError(t, err, "ValidateMD should not return an error for binary keys")
+	})
 }

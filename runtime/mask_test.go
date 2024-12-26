@@ -10,30 +10,30 @@ import (
 	"github.com/merzzzl/proto-rest-api/runtime"
 )
 
-func TestMergeByMask_0(t *testing.T) {
-	t.Parallel()
-
-	msg := &pb.Message{
-		Message: "hello",
-		Author: &pb.Author{
-			Name: "Alex",
-			Contact: &pb.Author_Email{
-				Email: "alex@example.org",
+func TestMergeByMask(t *testing.T) {
+	t.Run("merge fields by mask", func(t *testing.T) {
+		msg := &pb.Message{
+			Message: "hello",
+			Author: &pb.Author{
+				Name: "Alex",
+				Contact: &pb.Author_Email{
+					Email: "alex@example.org",
+				},
 			},
-		},
-	}
-	js := `{"message":"hi!","author":{"phone":"+79999999999"}}`
+		}
+		js := `{"message":"hi!","author":{"phone":"+79999999999"}}`
 
-	fm, err := runtime.GetFieldMaskJS([]byte(js))
-	require.NoError(t, err)
+		fm, err := runtime.GetFieldMaskJS([]byte(js))
+		require.NoError(t, err)
 
-	var in pb.Message
+		var in pb.Message
+		err = protojson.Unmarshal([]byte(js), &in)
+		require.NoError(t, err)
 
-	err = protojson.Unmarshal([]byte(js), &in)
-	require.NoError(t, err)
+		runtime.MergeByMask(&in, msg, fm)
 
-	runtime.MergeByMask(&in, msg, fm)
-	require.Equal(t, msg.GetMessage(), in.GetMessage())
-	require.Empty(t, msg.GetAuthor().GetEmail())
-	require.Equal(t, msg.GetAuthor().GetPhone(), in.GetAuthor().GetPhone())
+		require.Equal(t, "hi!", msg.GetMessage(), "message should be updated")
+		require.Empty(t, msg.GetAuthor().GetEmail(), "email should be cleared")
+		require.Equal(t, "+79999999999", msg.GetAuthor().GetPhone(), "phone should be updated")
+	})
 }

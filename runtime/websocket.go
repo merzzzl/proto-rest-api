@@ -13,9 +13,17 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
+type Conn interface {
+	WriteMessage(messageType int, data []byte) error
+	ReadMessage() (int, []byte, error)
+	WriteControl(messageType int, data []byte, deadline time.Time) error
+	SetCloseHandler(h func(code int, text string) error)
+	Close() error
+}
+
 type Stream struct {
 	context context.Context //nolint:containedctx // need for stream impl
-	conn    *websocket.Conn
+	conn    Conn
 	closed  atomic.Bool
 	header  metadata.MD
 	trailer metadata.MD

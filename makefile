@@ -1,9 +1,9 @@
 .PHONY: build
 build: proto install-oapi install-rest proto-example
 
-test:
-	go test ./... -cover
-
+test-runtime:
+	go test ./runtime/... -coverprofile=.coverage
+	go tool cover -func=.coverage
 example-run:
 	go run ./example/main.go
 

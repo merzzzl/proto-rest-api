@@ -6,18 +6,18 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/encoding/protojson"
 
-	"github.com/merzzzl/proto-rest-api/example/gen/go/example"
+	pb "github.com/merzzzl/proto-rest-api/example/api"
 	"github.com/merzzzl/proto-rest-api/runtime"
 )
 
 func TestMergeByMask_0(t *testing.T) {
 	t.Parallel()
 
-	msg := &example.Message{
+	msg := &pb.Message{
 		Message: "hello",
-		Author: &example.Author{
+		Author: &pb.Author{
 			Name: "Alex",
-			Contact: &example.Author_Email{
+			Contact: &pb.Author_Email{
 				Email: "alex@example.org",
 			},
 		},
@@ -27,7 +27,7 @@ func TestMergeByMask_0(t *testing.T) {
 	fm, err := runtime.GetFieldMaskJS([]byte(js))
 	require.NoError(t, err)
 
-	var in example.Message
+	var in pb.Message
 
 	err = protojson.Unmarshal([]byte(js), &in)
 	require.NoError(t, err)

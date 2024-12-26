@@ -12,7 +12,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	pb "github.com/merzzzl/proto-rest-api/example/gen/go/example"
+	pb "github.com/merzzzl/proto-rest-api/example/api"
 	"github.com/merzzzl/proto-rest-api/runtime"
 )
 
@@ -21,7 +21,10 @@ func main() {
 
 	pb.RegisterExampleServiceHandler(mux, NewExampleService())
 	pb.RegisterEchoServiceHandler(mux, NewEchoService())
-	pb.RegisterSwaggerUIHandler(mux, "/swagger-ui/")
+
+	if err := pb.RegisterSwaggerUIHandler(mux, "/swagger-ui/"); err != nil {
+		panic(err)
+	}
 
 	server := &http.Server{
 		Addr:         ":8080",

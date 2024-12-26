@@ -9,7 +9,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
 
-	"github.com/merzzzl/proto-rest-api/gen/go/rest/api"
+	"github.com/merzzzl/proto-rest-api/restapi"
 )
 
 func genServiceStructs(g *protogen.GeneratedFile, service *protogen.Service) {
@@ -152,9 +152,9 @@ func listOfPathFields(method *protogen.Method) map[string]string {
 		exitWithError(fmt.Sprintf("unknown method options in %s", method.GoName))
 	}
 
-	extVal := proto.GetExtension(methodOptions, api.E_Method)
+	extVal := proto.GetExtension(methodOptions, restapi.E_Method)
 
-	restRule, ok := extVal.(*api.MethodRule)
+	restRule, ok := extVal.(*restapi.MethodRule)
 	if !ok {
 		exitWithError(fmt.Sprintf("unknown http options in %s", method.GoName))
 	}

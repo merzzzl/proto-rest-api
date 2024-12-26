@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package restapi;
+
+import "google/protobuf/descriptor.proto";
+
+option go_package = "github.com/merzzzl/proto-rest-api/restapi;restapi";
+
+extend google.protobuf.MethodOptions {
+  MethodRule method = 70001;
+}
+
+message MethodRule {
+  // The HTTP method used to bind this RPC.
+  string method = 1;
+
+  // The path pattern associated with this RPC.
+  string path = 2;
+
+  // The name of the request field whose value is mapped to the HTTP body, or `*` for mapping all fields not captured by the path pattern to the HTTP body.
+  string request = 3;
+
+  // The name of the response field whose value is mapped to the HTTP body of response. Other response fields are ignored. When not set, the response message will be used as HTTP body of response.
+  string response = 4;
+
+  // The HTTP status code used for successful responses. Defaults to 200.
+  int32 success_code = 5;
+}
+
+extend google.protobuf.ServiceOptions {
+  ServiceRule service = 70002;
+}
+
+message ServiceRule {
+  // The base path for all HTTP bindings in this service.
+  string base_path = 1;
+}

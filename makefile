@@ -1,12 +1,29 @@
 .PHONY: build
-build:
-	buf generate
-	go build -o ./bin/protoc-gen-go-rest ./cmd/protoc-gen-go-rest
-	go build -o ./bin/protoc-gen-go-oapi ./cmd/protoc-gen-go-oapi
-	cd ./example && buf generate
+build: proto install-oapi install-rest proto-example
 
 test:
 	go test ./... -cover
 
 example-run:
 	go run ./example/main.go
+
+install-oapi:
+	go install ./cmd/protoc-gen-go-oapi
+
+install-rest:
+	go install ./cmd/protoc-gen-go-rest
+
+proto:
+	protoc \
+		-I=restapi \
+		--go_out=paths=source_relative:restapi \
+		restapi/annotations.proto
+
+proto-example:
+	protoc \
+		-I=. \
+		-I=example/proto \
+		--go_out=example \
+		--go-oapi_out=example \
+		--go-rest_out=example \
+		example/proto/example.proto

@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/merzzzl/proto-rest-api/example/gen/go/example"
+	pb "github.com/merzzzl/proto-rest-api/example/api"
 	"github.com/merzzzl/proto-rest-api/runtime"
 )
 
@@ -14,7 +14,7 @@ func TestProtoUnmarshal_0(t *testing.T) {
 
 	js := `{"message":"hi!","author":{"phone":"+79999999999"}}`
 
-	var in example.Message
+	var in pb.Message
 
 	err := runtime.ProtoUnmarshal([]byte(js), &in)
 	require.NoError(t, err)
@@ -34,7 +34,7 @@ func TestProtoUnmarshal_1(t *testing.T) {
 func TestProtoMarshal_0(t *testing.T) {
 	t.Parallel()
 
-	var in example.Message
+	var in pb.Message
 
 	_, err := runtime.ProtoMarshal(&in)
 	require.NoError(t, err)

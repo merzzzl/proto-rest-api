@@ -9,7 +9,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
 
-	"github.com/merzzzl/proto-rest-api/gen/go/rest/api"
+	"github.com/merzzzl/proto-rest-api/restapi"
 )
 
 func genHandler(g *protogen.GeneratedFile, service *protogen.Service, method *protogen.Method) {
@@ -20,9 +20,9 @@ func genHandler(g *protogen.GeneratedFile, service *protogen.Service, method *pr
 		exitWithError(fmt.Sprintf("unknown method options in %s", method.GoName))
 	}
 
-	extVal := proto.GetExtension(methodOptions, api.E_Method)
+	extVal := proto.GetExtension(methodOptions, restapi.E_Method)
 
-	restRule, ok := extVal.(*api.MethodRule)
+	restRule, ok := extVal.(*restapi.MethodRule)
 	if !ok {
 		exitWithError(fmt.Sprintf("unknown http options in %s", method.GoName))
 	}
@@ -87,7 +87,7 @@ func genHandlerNonClientStream(g *protogen.GeneratedFile, method *protogen.Metho
 	g.P()
 }
 
-func genHandlerEmptyResponse(g *protogen.GeneratedFile, method *protogen.Method, restRule *api.MethodRule) {
+func genHandlerEmptyResponse(g *protogen.GeneratedFile, method *protogen.Method, restRule *restapi.MethodRule) {
 	g.P("_, err = server.", method.GoName, "(ctx, &protoReq)")
 	g.P("if err != nil {")
 	g.P("errstatus := ", runtimePackage.Ident("GetHTTPStatusFromError"), "(err)")
@@ -115,7 +115,7 @@ func genHandlerEmptyResponse(g *protogen.GeneratedFile, method *protogen.Method,
 	g.P()
 }
 
-func genHandlerResponse(g *protogen.GeneratedFile, method *protogen.Method, restRule *api.MethodRule) {
+func genHandlerResponse(g *protogen.GeneratedFile, method *protogen.Method, restRule *restapi.MethodRule) {
 	g.P("msg, err := server.", method.GoName, "(ctx, &protoReq)")
 
 	g.P("if err != nil {")
@@ -201,7 +201,7 @@ func genHandlerResponse(g *protogen.GeneratedFile, method *protogen.Method, rest
 	g.P()
 }
 
-func genHandlerParseQuery(g *protogen.GeneratedFile, method *protogen.Method, restRule *api.MethodRule, varName string) {
+func genHandlerParseQuery(g *protogen.GeneratedFile, method *protogen.Method, restRule *restapi.MethodRule, varName string) {
 	subPath := restRule.GetPath()
 
 	sep := strings.LastIndex(subPath, "?")
@@ -275,7 +275,7 @@ func genHandlerParseQuery(g *protogen.GeneratedFile, method *protogen.Method, re
 	}
 }
 
-func genHandlerParsePath(g *protogen.GeneratedFile, method *protogen.Method, restRule *api.MethodRule, varName string) {
+func genHandlerParsePath(g *protogen.GeneratedFile, method *protogen.Method, restRule *restapi.MethodRule, varName string) {
 	subPath := restRule.GetPath()
 
 	for _, segment := range strings.Split(subPath, "/") {
@@ -346,7 +346,7 @@ func genHandlerParsePath(g *protogen.GeneratedFile, method *protogen.Method, res
 	}
 }
 
-func genHandlerRequest(g *protogen.GeneratedFile, method *protogen.Method, restRule *api.MethodRule) {
+func genHandlerRequest(g *protogen.GeneratedFile, method *protogen.Method, restRule *restapi.MethodRule) {
 	g.P("var protoReq ", method.Input.GoIdent)
 	g.P()
 

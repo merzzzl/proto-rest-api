@@ -1,12 +1,10 @@
 package main
 
 import (
-	"embed"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -18,13 +16,10 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/pluginpb"
 
-	"github.com/merzzzl/proto-rest-api/gen/go/rest/api"
+	"github.com/merzzzl/proto-rest-api/restapi"
 )
 
 var version = "0.0.0-alpha.0"
-
-//go:embed swagger-ui/*
-var swaggerUI embed.FS
 
 func main() {
 	showVersion := flag.Bool("version", false, "print the version and exit")
@@ -52,6 +47,7 @@ func main() {
 
 const (
 	runtimePackage = protogen.GoImportPath("github.com/merzzzl/proto-rest-api/runtime")
+	swaggerPackage = protogen.GoImportPath("github.com/merzzzl/proto-rest-api/swagger")
 	httpPackage    = protogen.GoImportPath("net/http")
 )
 
@@ -99,9 +95,9 @@ func generateFile(gen *protogen.Plugin, file *protogen.File) {
 			exitWithError(fmt.Sprintf("unknown service options in %s", service.GoName))
 		}
 
-		extValSrv := proto.GetExtension(serviceOptions, api.E_Service)
+		extValSrv := proto.GetExtension(serviceOptions, restapi.E_Service)
 
-		serviceRule, ok := extValSrv.(*api.ServiceRule)
+		serviceRule, ok := extValSrv.(*restapi.ServiceRule)
 		if !ok {
 			exitWithError(fmt.Sprintf("unknown http options in %s", service.GoName))
 		}
@@ -128,9 +124,9 @@ func generateFile(gen *protogen.Plugin, file *protogen.File) {
 				exitWithError(fmt.Sprintf("unknown method options in %s", method.GoName))
 			}
 
-			extVal := proto.GetExtension(methodOptions, api.E_Method)
+			extVal := proto.GetExtension(methodOptions, restapi.E_Method)
 
-			restRule, ok := extVal.(*api.MethodRule)
+			restRule, ok := extVal.(*restapi.MethodRule)
 			if !ok {
 				exitWithError(fmt.Sprintf("unknown http options in %s", method.GoName))
 			}
@@ -281,42 +277,21 @@ func generateFile(gen *protogen.Plugin, file *protogen.File) {
 		exitWithError(err.Error())
 	}
 
-	files, err := swaggerUI.ReadDir("swagger-ui")
-	if err != nil {
-		exitWithError(err.Error())
-	}
-
-	fileData := make(map[string][]byte)
-
-	for _, file := range files {
-		filePath := filepath.Join("swagger-ui", file.Name())
-
-		data, err := swaggerUI.ReadFile(filePath)
-		if err != nil {
-			exitWithError(err.Error())
-		}
-
-		fileData[file.Name()] = data
-	}
-
-	fileData["swagger.json"] = spec
-
 	g.P("// RegisterSwaggerUIHandler registers swagger ui handler.")
-	g.P("func RegisterSwaggerUIHandler(mux ", runtimePackage.Ident("ServeMuxer"), ", path string) {")
-	g.P("fs := ", runtimePackage.Ident("MakeFS"), "(files, path)")
+	g.P("func RegisterSwaggerUIHandler(mux ", runtimePackage.Ident("ServeMuxer"), ", path string) error {")
+	g.P("fs, err := ", swaggerPackage.Ident("GetSwaggerUI"), "(swaggerJSON, path)")
+	g.P("if err != nil {")
+	g.P("return err")
+	g.P("}")
 	g.P()
 	g.P("mux.Handle(path, ", httpPackage.Ident("FileServer"), "(fs))")
+	g.P()
+	g.P("return nil")
 	g.P("}")
 	g.P()
 
-	g.P("var files = map[string][]byte{")
-
-	for name, data := range fileData {
-		g.P("\"/", name, "\": ", "{")
-		g.P(printByteArray(data))
-		g.P("}", ",")
-	}
-
+	g.P("var swaggerJSON = []byte{")
+	g.P(printByteArray(spec))
 	g.P("}")
 	g.P()
 }

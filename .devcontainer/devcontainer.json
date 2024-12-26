@@ -7,22 +7,14 @@
 	"mounts": [
 		"source=${localEnv:HOME}/.netrc,target=/root/.netrc,type=bind,consistency=cached"
 	],
-	"runArgs": [
-		"--privileged"
-	],
 	"customizations": {
 		"vscode": {
 			"settings": {
 				"files.autoSave": "afterDelay",
-				"files.autoSaveDelay": 2000,
+				"files.autoSaveDelay": 500,
 				"go.lintOnSave": "workspace",
 				"go.lintTool": "golangci-lint",
-				"go.formatTool": "gofumpt",
-				"protoc": {
-					"options": [
-						"-I=third_party/googleapis"
-					]
-				}
+				"go.formatTool": "gofumpt"
 			},
 			"extensions": [
 				"waderyan.gitblame",

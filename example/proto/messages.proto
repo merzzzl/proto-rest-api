@@ -1,0 +1,92 @@
+syntax = "proto3";
+
+package api;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "./api;api";
+
+message TickerRequest {
+  int32 count = 1; // Count
+}
+
+message TickerResponse {
+  google.protobuf.Timestamp timestamp = 2; // Timestamp
+}
+
+message EchoRequest {
+  string message = 1; // Message
+  string channel = 2; // Channel
+}
+
+message EchoResponse {
+  string message = 1;                                // Message
+  google.protobuf.Timestamp timestamp = 2;           // Timestamp
+  map<string, google.protobuf.Timestamp> points = 3; // Points
+}
+
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  STATUS_DRAFT = 1;
+  STATUS_PUBLISHED = 2;
+}
+
+message Author {
+  string name = 1; // Name
+  oneof contact {
+    string email = 2; // Email address
+    string phone = 3; // Phone number
+  }
+}
+
+message Message {
+  string message = 2; // Message
+  Author author = 3;  // Author
+  Status status = 4;  // Status
+}
+
+message PatchMessageRequest {
+  int32 id = 1;        // Message ID
+  Message message = 2; // Message
+}
+
+message PatchMessageResponse {}
+
+message PostMessageRequest {
+  Message message = 1; // Message
+}
+
+message PostMessageResponse {
+  int32 id = 1; // Message ID
+}
+
+message PutMessageRequest {
+  int32 id = 1;        // Message ID
+  Message message = 2; // Message
+}
+
+message PutMessageResponse {}
+
+message GetMessageRequest {
+  int32 id = 1; // Message ID
+}
+
+message GetMessageResponse {
+  Message message = 1; // Message
+}
+
+message DeleteMessageRequest {
+  int32 id = 1; // Message ID
+}
+
+message DeleteMessageResponse {}
+
+message ListMessagesRequest {
+  repeated int32 ids = 1; // List of message IDs
+  int32 page = 2;         // Page number
+  int32 per_page = 3;     // Number of items per page
+}
+
+message ListMessagesResponse {
+  repeated Message messages = 1; // List of messages
+}

@@ -22,7 +22,8 @@
 				"dbaeumer.vscode-eslint",
 				"golang.go",
 				"redhat.vscode-yaml",
-				"ms-vscode.makefile-tools"
+				"ms-vscode.makefile-tools",
+				"xaver.clang-format"
 			]
 		}
 	}

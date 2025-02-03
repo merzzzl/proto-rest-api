@@ -219,49 +219,199 @@ func genHandlerParseQuery(g *protogen.GeneratedFile, method *protogen.Method, re
 				switch field.Desc.Kind() {
 				case protoreflect.StringKind:
 					g.P(varName, ".", field.GoName, " = r.URL.Query().Get(\"", param[1:], "\")")
-				case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind:
-					g.P(varName, ".", field.GoName, ", err = ", runtimePackage.Ident("ParseInt32"), "(r.URL.Query().Get(\"", param[1:], "\"))")
+				case protoreflect.Int32Kind, protoreflect.Sfixed32Kind:
+					g.P("if s", field.GoName, ", ok := r.URL.Query()[\"", param[1:], "\"]; ok {")
+					g.P("for _, s := range s", field.GoName, " {")
+					g.P("v, err := ", runtimePackage.Ident("ParseInt32"), "(s)")
 					g.P("if err != nil {")
 					g.P("w.WriteHeader(", httpPackage.Ident("StatusBadRequest"), ")")
+					g.P()
 					g.P("if _, err := w.Write([]byte(err.Error())); err != nil {")
 					g.P("w.WriteHeader(", httpPackage.Ident("StatusInternalServerError"), ")")
 					g.P("}")
 					g.P()
 					g.P("return")
 					g.P("}")
-				case protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind:
-					g.P(varName, ".", field.GoName, ", err = ", runtimePackage.Ident("ParseInt64"), "(r.URL.Query().Get(\"", param[1:], "\"))")
+					g.P()
+
+					if field.Desc.IsList() {
+						g.P(varName, ".", field.GoName, " = append(", varName, ".", field.GoName, ", v)")
+					} else {
+						g.P(varName, ".", field.GoName, " = v")
+						g.P()
+						g.P("continue")
+					}
+
+					g.P("}")
+					g.P("}")
+				case protoreflect.Int64Kind, protoreflect.Sfixed64Kind:
+					g.P("if s", field.GoName, ", ok := r.URL.Query()[\"", param[1:], "\"]; ok {")
+					g.P("for _, s := range s", field.GoName, " {")
+					g.P("v, err := ", runtimePackage.Ident("ParseInt64"), "(s)")
 					g.P("if err != nil {")
 					g.P("w.WriteHeader(", httpPackage.Ident("StatusBadRequest"), ")")
+					g.P()
 					g.P("if _, err := w.Write([]byte(err.Error())); err != nil {")
 					g.P("w.WriteHeader(", httpPackage.Ident("StatusInternalServerError"), ")")
 					g.P("}")
 					g.P()
 					g.P("return")
+					g.P("}")
+					g.P()
+
+					if field.Desc.IsList() {
+						g.P(varName, ".", field.GoName, " = append(", varName, ".", field.GoName, ", v)")
+					} else {
+						g.P(varName, ".", field.GoName, " = v")
+						g.P()
+						g.P("continue")
+					}
+
+					g.P("}")
 					g.P("}")
 				case protoreflect.Uint32Kind, protoreflect.Fixed32Kind:
-					g.P(varName, ".", field.GoName, ", err = ", runtimePackage.Ident("ParseUint32"), "(r.URL.Query().Get(\"", param[1:], "\"))")
+					g.P("if s", field.GoName, ", ok := r.URL.Query()[\"", param[1:], "\"]; ok {")
+					g.P("for _, s := range s", field.GoName, " {")
+					g.P("v, err := ", runtimePackage.Ident("ParseUint32"), "(s)")
 					g.P("if err != nil {")
 					g.P("w.WriteHeader(", httpPackage.Ident("StatusBadRequest"), ")")
+					g.P()
 					g.P("if _, err := w.Write([]byte(err.Error())); err != nil {")
 					g.P("w.WriteHeader(", httpPackage.Ident("StatusInternalServerError"), ")")
 					g.P("}")
 					g.P()
 					g.P("return")
+					g.P("}")
+					g.P()
+
+					if field.Desc.IsList() {
+						g.P(varName, ".", field.GoName, " = append(", varName, ".", field.GoName, ", v)")
+					} else {
+						g.P(varName, ".", field.GoName, " = v")
+						g.P()
+						g.P("continue")
+					}
+
+					g.P("}")
 					g.P("}")
 				case protoreflect.Uint64Kind, protoreflect.Fixed64Kind:
-					g.P(varName, ".", field.GoName, ", err = ", runtimePackage.Ident("ParseUint64"), "(r.URL.Query().Get(\"", param[1:], "\"))")
+					g.P("if s", field.GoName, ", ok := r.URL.Query()[\"", param[1:], "\"]; ok {")
+					g.P("for _, s := range s", field.GoName, " {")
+					g.P("v, err := ", runtimePackage.Ident("ParseUint64"), "(s)")
 					g.P("if err != nil {")
 					g.P("w.WriteHeader(", httpPackage.Ident("StatusBadRequest"), ")")
+					g.P()
 					g.P("if _, err := w.Write([]byte(err.Error())); err != nil {")
 					g.P("w.WriteHeader(", httpPackage.Ident("StatusInternalServerError"), ")")
 					g.P("}")
 					g.P()
 					g.P("return")
+					g.P("}")
+					g.P()
+
+					if field.Desc.IsList() {
+						g.P(varName, ".", field.GoName, " = append(", varName, ".", field.GoName, ", v)")
+					} else {
+						g.P(varName, ".", field.GoName, " = v")
+						g.P()
+						g.P("continue")
+					}
+
+					g.P("}")
 					g.P("}")
 				case protoreflect.EnumKind:
 					g.P(varName, ".", field.GoName, " = ", field.Enum.GoIdent, "(r.URL.Query().Get(\"", param[1:], "\"))")
-				case protoreflect.BoolKind, protoreflect.FloatKind, protoreflect.DoubleKind, protoreflect.BytesKind, protoreflect.MessageKind, protoreflect.GroupKind:
+
+					g.P("if s", field.GoName, ", ok := r.URL.Query()[\"", param[1:], "\"]; ok {")
+					g.P("for _, s := range s", field.GoName, " {")
+					g.P()
+
+					if field.Desc.IsList() {
+						g.P(varName, ".", field.GoName, " = append(", varName, ".", field.GoName, ", ", field.Enum.GoIdent, "(s))")
+					} else {
+						g.P(varName, ".", field.GoName, " = ", field.Enum.GoIdent, "(s)")
+						g.P()
+						g.P("continue")
+					}
+
+					g.P("}")
+					g.P("}")
+				case protoreflect.BoolKind:
+					g.P("if s", field.GoName, ", ok := r.URL.Query()[\"", param[1:], "\"]; ok {")
+					g.P("for _, s := range s", field.GoName, " {")
+					g.P("v, err := ", runtimePackage.Ident("ParseBool"), "(s)")
+					g.P("if err != nil {")
+					g.P("w.WriteHeader(", httpPackage.Ident("StatusBadRequest"), ")")
+					g.P()
+					g.P("if _, err := w.Write([]byte(err.Error())); err != nil {")
+					g.P("w.WriteHeader(", httpPackage.Ident("StatusInternalServerError"), ")")
+					g.P("}")
+					g.P()
+					g.P("return")
+					g.P("}")
+					g.P()
+
+					if field.Desc.IsList() {
+						g.P(varName, ".", field.GoName, " = append(", varName, ".", field.GoName, ", v)")
+					} else {
+						g.P(varName, ".", field.GoName, " = v")
+						g.P()
+						g.P("continue")
+					}
+
+					g.P("}")
+					g.P("}")
+				case protoreflect.DoubleKind:
+					g.P("if s", field.GoName, ", ok := r.URL.Query()[\"", param[1:], "\"]; ok {")
+					g.P("for _, s := range s", field.GoName, " {")
+					g.P("v, err := ", runtimePackage.Ident("ParseFloat64"), "(s)")
+					g.P("if err != nil {")
+					g.P("w.WriteHeader(", httpPackage.Ident("StatusBadRequest"), ")")
+					g.P()
+					g.P("if _, err := w.Write([]byte(err.Error())); err != nil {")
+					g.P("w.WriteHeader(", httpPackage.Ident("StatusInternalServerError"), ")")
+					g.P("}")
+					g.P()
+					g.P("return")
+					g.P("}")
+					g.P()
+
+					if field.Desc.IsList() {
+						g.P(varName, ".", field.GoName, " = append(", varName, ".", field.GoName, ", v)")
+					} else {
+						g.P(varName, ".", field.GoName, " = v")
+						g.P()
+						g.P("continue")
+					}
+
+					g.P("}")
+					g.P("}")
+				case protoreflect.FloatKind:
+					g.P("if s", field.GoName, ", ok := r.URL.Query()[\"", param[1:], "\"]; ok {")
+					g.P("for _, s := range s", field.GoName, " {")
+					g.P("v, err := ", runtimePackage.Ident("ParseFloat32"), "(s)")
+					g.P("if err != nil {")
+					g.P("w.WriteHeader(", httpPackage.Ident("StatusBadRequest"), ")")
+					g.P()
+					g.P("if _, err := w.Write([]byte(err.Error())); err != nil {")
+					g.P("w.WriteHeader(", httpPackage.Ident("StatusInternalServerError"), ")")
+					g.P("}")
+					g.P()
+					g.P("return")
+					g.P("}")
+					g.P()
+
+					if field.Desc.IsList() {
+						g.P(varName, ".", field.GoName, " = append(", varName, ".", field.GoName, ", v)")
+					} else {
+						g.P(varName, ".", field.GoName, " = v")
+						g.P()
+						g.P("continue")
+					}
+
+					g.P("}")
+					g.P("}")
+				default:
 					exitWithError(fmt.Sprintf("unknown field %s in %s", param[1:], method.Input.GoIdent))
 				}
 

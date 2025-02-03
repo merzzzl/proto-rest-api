@@ -33,12 +33,26 @@ func main() {
 
 	protogen.Options{}.Run(func(gen *protogen.Plugin) error {
 		gen.SupportedFeatures = uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
+		files := make(map[string]*protogen.File)
+
 		for _, f := range gen.Files {
 			if !f.Generate {
 				continue
 			}
 
-			generateFile(gen, f)
+			lf, ok := files[string(f.GoPackageName)]
+			if !ok {
+				files[string(f.GoPackageName)] = f
+
+				continue
+			}
+
+			lf.Services = append(lf.Services, f.Services...)
+			lf.Messages = append(lf.Messages, f.Messages...)
+		}
+
+		for _, lf := range files {
+			generateFile(gen, lf)
 		}
 
 		return nil
@@ -49,6 +63,7 @@ const (
 	runtimePackage = protogen.GoImportPath("github.com/merzzzl/proto-rest-api/runtime")
 	swaggerPackage = protogen.GoImportPath("github.com/merzzzl/proto-rest-api/swagger")
 	httpPackage    = protogen.GoImportPath("net/http")
+	stringsPackage = protogen.GoImportPath("strings")
 )
 
 func generateFile(gen *protogen.Plugin, file *protogen.File) {
@@ -173,10 +188,11 @@ func generateFile(gen *protogen.Plugin, file *protogen.File) {
 			if len(pathParam) > 0 {
 				for _, param := range pathParam {
 					operation.Parameters = append(operation.Parameters, &ParameterObject{
-						Name:     param,
-						In:       "path",
-						Required: true,
-						Schema:   getFieldSchemaByName(method.Input, param),
+						Name:        param,
+						In:          "path",
+						Required:    true,
+						Description: getDescriptionByName(method.Input, param),
+						Schema:      getFieldSchemaByName(method.Input, param),
 					})
 				}
 			}
@@ -184,10 +200,11 @@ func generateFile(gen *protogen.Plugin, file *protogen.File) {
 			if len(queryParams) > 0 {
 				for _, param := range queryParams {
 					operation.Parameters = append(operation.Parameters, &ParameterObject{
-						Name:     param,
-						In:       "query",
-						Required: true,
-						Schema:   getFieldSchemaByName(method.Input, param),
+						Name:        param,
+						In:          "query",
+						Required:    true,
+						Description: getDescriptionByName(method.Input, param),
+						Schema:      getFieldSchemaByName(method.Input, param),
 					})
 				}
 			}
@@ -279,6 +296,14 @@ func generateFile(gen *protogen.Plugin, file *protogen.File) {
 
 	g.P("// RegisterSwaggerUIHandler registers swagger ui handler.")
 	g.P("func RegisterSwaggerUIHandler(mux ", runtimePackage.Ident("ServeMuxer"), ", path string) error {")
+	g.P("if !", stringsPackage.Ident("HasPrefix"), "(path, \"/\") {")
+	g.P("path = \"/\" + path")
+	g.P("}")
+	g.P()
+	g.P("if !", stringsPackage.Ident("HasSuffix"), "(path, \"/\") {")
+	g.P("path += \"/\"")
+	g.P("}")
+	g.P()
 	g.P("fs, err := ", swaggerPackage.Ident("GetSwaggerUI"), "(swaggerJSON, path)")
 	g.P("if err != nil {")
 	g.P("return err")
@@ -435,6 +460,16 @@ func getFieldSchemaByName(msg *protogen.Message, name string) *SchemaObject {
 	return nil
 }
 
+func getDescriptionByName(msg *protogen.Message, name string) string {
+	for _, field := range msg.Fields {
+		if field.Desc.TextName() == name {
+			return formatComment(field.Comments.Trailing.String())
+		}
+	}
+
+	return ""
+}
+
 func getListDefinitions(field *protogen.Field, properties map[string]*SchemaObject) map[string]*SchemaObject {
 	if properties[field.GoIdent.GoName] != nil {
 		return properties
@@ -479,57 +514,66 @@ func genFieldDefinitions(field *protogen.Field, properties map[string]*SchemaObj
 }
 
 func getSchemaObjectForField(field *protogen.Field) *SchemaObject {
+	var schema *SchemaObject
+
 	switch field.Desc.Kind() {
-	case protoreflect.MessageKind, protoreflect.GroupKind:
+	default:
 		exitWithError(fmt.Sprintf("unknown field type %s", field.Desc.Kind()))
 	case protoreflect.BoolKind:
-		return &SchemaObject{
+		schema = &SchemaObject{
 			Type: "boolean",
 		}
-	case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind, protoreflect.Fixed32Kind:
-		return &SchemaObject{
+	case protoreflect.Int32Kind, protoreflect.Sfixed32Kind, protoreflect.Fixed32Kind:
+		schema = &SchemaObject{
 			Type:   "integer",
 			Format: "int32",
 		}
 	case protoreflect.Uint32Kind:
-		return &SchemaObject{
+		schema = &SchemaObject{
 			Type:    "integer",
 			Format:  "uint32",
 			Minimum: 0,
 		}
-	case protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind, protoreflect.Fixed64Kind:
-		return &SchemaObject{
+	case protoreflect.Int64Kind, protoreflect.Sfixed64Kind, protoreflect.Fixed64Kind:
+		schema = &SchemaObject{
 			Type:   "integer",
 			Format: "int64",
 		}
 	case protoreflect.Uint64Kind:
-		return &SchemaObject{
+		schema = &SchemaObject{
 			Type:    "integer",
 			Format:  "uint32",
 			Minimum: 0,
 		}
 	case protoreflect.FloatKind:
-		return &SchemaObject{
+		schema = &SchemaObject{
 			Type:   "number",
 			Format: "float",
 		}
 	case protoreflect.DoubleKind:
-		return &SchemaObject{
+		schema = &SchemaObject{
 			Type:   "number",
 			Format: "double",
 		}
 	case protoreflect.StringKind, protoreflect.BytesKind:
-		return &SchemaObject{
+		schema = &SchemaObject{
 			Type: "string",
 		}
 	case protoreflect.EnumKind:
-		return &SchemaObject{
+		schema = &SchemaObject{
 			Type: "string",
 			Enum: enumValues(field.Enum),
 		}
 	}
 
-	return nil
+	if field.Desc.IsList() {
+		schema = &SchemaObject{
+			Type:  "array",
+			Items: schema,
+		}
+	}
+
+	return schema
 }
 
 func enumValues(enum *protogen.Enum) []string {
@@ -596,10 +640,11 @@ type ResponseObject struct {
 }
 
 type ParameterObject struct {
-	Name     string        `json:"name,omitempty"`
-	In       string        `json:"in,omitempty"`
-	Required bool          `json:"required,omitempty"`
-	Schema   *SchemaObject `json:"schema,omitempty"`
+	Name        string        `json:"name,omitempty"`
+	In          string        `json:"in,omitempty"`
+	Required    bool          `json:"required,omitempty"`
+	Schema      *SchemaObject `json:"schema,omitempty"`
+	Description string        `json:"description,omitempty"`
 }
 
 type RequestBodyObject struct {

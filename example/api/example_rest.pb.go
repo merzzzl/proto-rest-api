@@ -508,24 +508,59 @@ func handlerExampleServiceWebServerListMessages(server ExampleServiceWebServer, 
 
 	var protoReq ListMessagesRequest
 
-	protoReq.Page, err = runtime.ParseInt32(r.URL.Query().Get("page"))
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-		}
+	if sPage, ok := r.URL.Query()["page"]; ok {
+		for _, s := range sPage {
+			v, err := runtime.ParseInt32(s)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
 
-		return
+				if _, err := w.Write([]byte(err.Error())); err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+				}
+
+				return
+			}
+
+			protoReq.Page = v
+
+			continue
+		}
 	}
 
-	protoReq.PerPage, err = runtime.ParseInt32(r.URL.Query().Get("per_page"))
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-		}
+	if sPerPage, ok := r.URL.Query()["per_page"]; ok {
+		for _, s := range sPerPage {
+			v, err := runtime.ParseInt32(s)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
 
-		return
+				if _, err := w.Write([]byte(err.Error())); err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+				}
+
+				return
+			}
+
+			protoReq.PerPage = v
+
+			continue
+		}
+	}
+
+	if sIds, ok := r.URL.Query()["ids"]; ok {
+		for _, s := range sIds {
+			v, err := runtime.ParseInt32(s)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+
+				if _, err := w.Write([]byte(err.Error())); err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+				}
+
+				return
+			}
+
+			protoReq.Ids = append(protoReq.Ids, v)
+		}
 	}
 
 	msg, err := server.ListMessages(ctx, &protoReq)

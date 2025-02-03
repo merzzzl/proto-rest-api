@@ -20,10 +20,10 @@ proto:
 		restapi/annotations.proto
 
 proto-example:
+	rm -f example/api/*
 	protoc \
 		-I=. \
-		-I=example/proto \
 		--go_out=example \
 		--go-oapi_out=example \
 		--go-rest_out=example \
-		example/proto/example.proto
+		example/proto/*.proto

@@ -2,171 +2,91 @@ syntax = "proto3";
 
 package api;
 
-import "google/protobuf/timestamp.proto";
 import "restapi/annotations.proto";
+import "example/proto/messages.proto";
 
 option go_package = "./api;api";
 
 service EchoService {
-  option (restapi.service) = {base_path: "/api/v1"};
+  option (restapi.service) = {
+    base_path : "/api/v1"
+  };
 
   rpc Echo(stream EchoRequest) returns (stream EchoResponse) {
     option (restapi.method) = {
-      method: "GET"
-      path: "/echo/:channel"
-      request: "*"
-      response: "*"
+      method : "GET"
+      path : "/echo/:channel"
+      request : "*"
+      response : "*"
     };
   }
 
   rpc Ticker(TickerRequest) returns (stream TickerResponse) {
     option (restapi.method) = {
-      method: "GET"
-      path: "/ticker/:count"
-      request: "*"
-      response: "*"
+      method : "GET"
+      path : "/ticker/:count"
+      request : "*"
+      response : "*"
     };
   }
 }
 
 service ExampleService {
-  option (restapi.service) = {base_path: "/api/v1/example"};
+  option (restapi.service) = {
+    base_path : "/api/v1/example"
+  };
 
   // POST new message to the server.
   rpc PostMessage(PostMessageRequest) returns (PostMessageResponse) {
     option (restapi.method) = {
-      method: "POST"
-      path: "/messages"
-      request: ".message"
-      response: "*"
+      method : "POST"
+      path : "/messages"
+      request : ".message"
+      response : "*"
     };
   }
 
   // GET message from the server.
   rpc GetMessage(GetMessageRequest) returns (GetMessageResponse) {
     option (restapi.method) = {
-      method: "GET"
-      path: "/messages/:id"
-      response: ".message"
+      method : "GET"
+      path : "/messages/:id"
+      response : ".message"
     };
   }
 
   // DELETE message from the server.
   rpc DeleteMessage(DeleteMessageRequest) returns (DeleteMessageResponse) {
     option (restapi.method) = {
-      method: "DELETE"
-      path: "/messages/:id"
+      method : "DELETE"
+      path : "/messages/:id"
     };
   }
 
   // LIST messages from the server.
   rpc ListMessages(ListMessagesRequest) returns (ListMessagesResponse) {
     option (restapi.method) = {
-      method: "GET"
-      path: "/messages?:page&:per_page"
-      response: ".messages"
+      method : "GET"
+      path : "/messages?:page&:per_page&:ids"
+      response : ".messages"
     };
   }
 
   // PUT message to the server.
   rpc PutMessage(PutMessageRequest) returns (PutMessageResponse) {
     option (restapi.method) = {
-      method: "PUT"
-      path: "/messages/:id"
-      request: ".message"
+      method : "PUT"
+      path : "/messages/:id"
+      request : ".message"
     };
   }
 
   // PATCH message to the server.
   rpc PatchMessage(PatchMessageRequest) returns (PatchMessageResponse) {
     option (restapi.method) = {
-      method: "PATCH"
-      path: "/messages/:id"
-      request: ".message"
+      method : "PATCH"
+      path : "/messages/:id"
+      request : ".message"
     };
   }
-}
-
-message TickerRequest {
-  int32 count = 1;
-}
-
-message TickerResponse {
-  google.protobuf.Timestamp timestamp = 2;
-}
-
-message EchoRequest {
-  string message = 1;
-  string channel = 2;
-}
-
-message EchoResponse {
-  string message = 1;
-  google.protobuf.Timestamp timestamp = 2;
-  map<string, google.protobuf.Timestamp> points = 3;
-}
-
-enum Status {
-  STATUS_UNSPECIFIED = 0;
-  STATUS_DRAFT = 1;
-  STATUS_PUBLISHED = 2;
-}
-
-message Author {
-  string name = 1;
-  oneof contact {
-    string email = 2;
-    string phone = 3;
-  }
-}
-
-message Message {
-  string message = 2;
-  Author author = 3;
-  Status status = 4;
-}
-
-message PatchMessageRequest {
-  int32 id = 1;
-  Message message = 2;
-}
-
-message PatchMessageResponse {}
-
-message PostMessageRequest {
-  Message message = 1;
-}
-
-message PostMessageResponse {
-  int32 id = 1;
-}
-
-message PutMessageRequest {
-  int32 id = 1;
-  Message message = 2;
-}
-
-message PutMessageResponse {}
-
-message GetMessageRequest {
-  int32 id = 1;
-}
-
-message GetMessageResponse {
-  Message message = 1;
-}
-
-message DeleteMessageRequest {
-  int32 id = 1;
-}
-
-message DeleteMessageResponse {}
-
-message ListMessagesRequest {
-  int32 page = 1;
-  int32 per_page = 2;
-}
-
-message ListMessagesResponse {
-  repeated Message messages = 1;
 }

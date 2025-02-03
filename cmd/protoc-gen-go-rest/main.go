@@ -36,6 +36,10 @@ func main() {
 				continue
 			}
 
+			if len(f.Services) == 0 {
+				continue
+			}
+
 			generateFile(gen, f)
 		}
 

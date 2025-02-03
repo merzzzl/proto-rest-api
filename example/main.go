@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/exp/slices"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -169,7 +170,13 @@ func (s *ExampleService) ListMessages(_ context.Context, req *pb.ListMessagesReq
 	defer s.mutex.Unlock()
 
 	messages := make([]*pb.Message, 0, len(s.storage))
-	for _, message := range s.storage {
+	for id, message := range s.storage {
+		if len(req.GetIds()) > 0 {
+			if !slices.Contains(req.GetIds(), id) {
+				continue
+			}
+		}
+
 		messages = append(messages, message)
 	}
 

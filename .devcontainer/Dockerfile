@@ -1,7 +1,7 @@
 FROM mcr.microsoft.com/devcontainers/base:bookworm   
 
 RUN apt-get update && \
-    apt-get install -y makepkg protobuf-compiler
+    apt-get install -y makepkg protobuf-compiler clang-format
 
 RUN git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.1
 ENV PATH="$PATH:/root/.asdf/bin"

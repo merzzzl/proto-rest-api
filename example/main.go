@@ -27,6 +27,10 @@ func main() {
 		panic(err)
 	}
 
+	if err := pb.RegisterReDocUIHandler(mux, "/redoc-ui/"); err != nil {
+		panic(err)
+	}
+
 	server := &http.Server{
 		Addr:         ":8080",
 		Handler:      mux,

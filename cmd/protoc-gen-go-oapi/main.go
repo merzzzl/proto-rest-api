@@ -456,8 +456,17 @@ func genMessageDefinitions(msg *protogen.Message, properties map[string]*SchemaO
 		if field.Message != nil {
 			_ = genMessageDefinitions(field.Message, properties)
 
-			schema.Properties[field.Desc.JSONName()] = &SchemaObject{
-				Ref: getDefinitionsRef(field.Message.GoIdent.GoName),
+			if field.Desc.IsList() {
+				schema.Properties[field.Desc.JSONName()] = &SchemaObject{
+					Type: "array",
+					Items: &SchemaObject{
+						Ref: getDefinitionsRef(field.Message.GoIdent.GoName),
+					},
+				}
+			} else {
+				schema.Properties[field.Desc.JSONName()] = &SchemaObject{
+					Ref: getDefinitionsRef(field.Message.GoIdent.GoName),
+				}
 			}
 
 			continue

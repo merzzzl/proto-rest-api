@@ -33,7 +33,7 @@ func RegisterSwaggerUIHandler(mux runtime.ServeMuxer, path string) error {
 	return nil
 }
 
-// RegisterReDocUIHandler registers swagger ui handler.
+// RegisterReDocUIHandler registers redoc ui handler.
 func RegisterReDocUIHandler(mux runtime.ServeMuxer, path string) error {
 	if !strings.HasPrefix(path, "/") {
 		path = "/" + path

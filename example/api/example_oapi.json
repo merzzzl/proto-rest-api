@@ -1,0 +1,459 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "Api",
+        "version": "2025-02-04"
+    },
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "/api/v1/echo/{channel}": {
+            "get": {
+                "operationId": "EchoService_Echo",
+                "tags": [
+                    "EchoService"
+                ],
+                "parameters": [
+                    {
+                        "name": "channel",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Channel"
+                    }
+                ],
+                "requestBody": {
+                    "description": "A JSON object containing request parameters.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/definitions/EchoRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/definitions/EchoResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/example/messages": {
+            "get": {
+                "summary": "LIST messages from the server.",
+                "operationId": "ExampleService_ListMessages",
+                "tags": [
+                    "ExampleService"
+                ],
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int32"
+                        },
+                        "description": "Page number"
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int32"
+                        },
+                        "description": "Number of items per page"
+                    },
+                    {
+                        "name": "ids",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer",
+                                "format": "int32"
+                            }
+                        },
+                        "description": "List of message IDs"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/definitions/ListMessagesResponse_Messages"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "summary": "POST new message to the server.",
+                "operationId": "ExampleService_PostMessage",
+                "tags": [
+                    "ExampleService"
+                ],
+                "requestBody": {
+                    "description": "A JSON object containing request parameters.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/definitions/PostMessageRequest_Message"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/definitions/PostMessageResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/example/messages/{id}": {
+            "delete": {
+                "summary": "DELETE message from the server.",
+                "operationId": "ExampleService_DeleteMessage",
+                "tags": [
+                    "ExampleService"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int32"
+                        },
+                        "description": "Message ID"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A successful response."
+                    }
+                }
+            },
+            "get": {
+                "summary": "GET message from the server.",
+                "operationId": "ExampleService_GetMessage",
+                "tags": [
+                    "ExampleService"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int32"
+                        },
+                        "description": "Message ID"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/definitions/GetMessageResponse_Message"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "summary": "PATCH message to the server.",
+                "operationId": "ExampleService_PatchMessage",
+                "tags": [
+                    "ExampleService"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int32"
+                        },
+                        "description": "Message ID"
+                    }
+                ],
+                "requestBody": {
+                    "description": "A JSON object containing request parameters.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/definitions/PatchMessageRequest_Message"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "A successful response."
+                    }
+                }
+            },
+            "put": {
+                "summary": "PUT message to the server.",
+                "operationId": "ExampleService_PutMessage",
+                "tags": [
+                    "ExampleService"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int32"
+                        },
+                        "description": "Message ID"
+                    }
+                ],
+                "requestBody": {
+                    "description": "A JSON object containing request parameters.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/definitions/PutMessageRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "A successful response."
+                    }
+                }
+            }
+        },
+        "/api/v1/ticker/{count}": {
+            "get": {
+                "operationId": "EchoService_Ticker",
+                "tags": [
+                    "EchoService"
+                ],
+                "parameters": [
+                    {
+                        "name": "count",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int32"
+                        },
+                        "description": "Count"
+                    }
+                ],
+                "requestBody": {
+                    "description": "A JSON object containing request parameters.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/definitions/TickerRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/definitions/TickerResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "Author": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "EchoRequest": {
+            "type": "object",
+            "properties": {
+                "channel": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "EchoResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "points": {
+                    "$ref": "#/definitions/EchoResponse_PointsEntry"
+                },
+                "timestamp": {
+                    "$ref": "#/definitions/Timestamp"
+                }
+            }
+        },
+        "EchoResponse_PointsEntry": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "value": {
+                    "$ref": "#/definitions/Timestamp"
+                }
+            }
+        },
+        "GetMessageResponse_Message": {
+            "$ref": "#/definitions/Message"
+        },
+        "ListMessagesResponse_Messages": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/Message"
+            }
+        },
+        "Message": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "$ref": "#/definitions/Author"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "STATUS_UNSPECIFIED",
+                        "STATUS_DRAFT",
+                        "STATUS_PUBLISHED"
+                    ]
+                }
+            }
+        },
+        "PatchMessageRequest_Message": {
+            "$ref": "#/definitions/Message"
+        },
+        "PostMessageRequest_Message": {
+            "$ref": "#/definitions/Message"
+        },
+        "PostMessageResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "format": "int32"
+                }
+            }
+        },
+        "PutMessageRequest": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "message": {
+                    "$ref": "#/definitions/Message"
+                }
+            }
+        },
+        "TickerRequest": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "format": "int32"
+                }
+            }
+        },
+        "TickerResponse": {
+            "type": "object",
+            "properties": {
+                "timestamp": {
+                    "$ref": "#/definitions/Timestamp"
+                }
+            }
+        },
+        "Timestamp": {
+            "type": "object",
+            "properties": {
+                "nanos": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "seconds": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "EchoService"
+        },
+        {
+            "name": "ExampleService"
+        }
+    ]
+}
+

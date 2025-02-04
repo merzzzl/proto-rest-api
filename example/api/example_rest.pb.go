@@ -639,9 +639,7 @@ func handlerExampleServiceWebServerPutMessage(server ExampleServiceWebServer, w 
 
 		ctx = runtime.ContextWithFieldMask(ctx, fm)
 
-		var sub Message
-
-		err = runtime.ProtoUnmarshal(data, &sub)
+		err = runtime.ProtoUnmarshal(data, &protoReq)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			if _, err := w.Write([]byte(err.Error())); err != nil {
@@ -650,8 +648,6 @@ func handlerExampleServiceWebServerPutMessage(server ExampleServiceWebServer, w 
 
 			return
 		}
-
-		protoReq.Message = &sub
 	}
 
 	protoReq.Id, err = runtime.ParseInt32(p.ByName("id"))

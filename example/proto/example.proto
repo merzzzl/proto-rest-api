@@ -77,7 +77,7 @@ service ExampleService {
     option (restapi.method) = {
       method : "PUT"
       path : "/messages/:id"
-      request : ".message"
+      request : "*"
     };
   }
 

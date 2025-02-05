@@ -23,22 +23,35 @@ type EchoServiceWebServer interface {
 	mustEmbedUnimplementedEchoServiceWebServer()
 }
 
+// UnimplementedEchoServiceWebServer must be embedded to have forward compatible implementations.
+type UnimplementedEchoServiceWebServer struct{}
+
+func (UnimplementedEchoServiceWebServer) Echo(EchoServiceEchoWebSocket) error {
+	return runtime.Errorf(http.StatusNotImplemented, "method not implemented")
+}
+
+func (UnimplementedEchoServiceWebServer) Ticker(*TickerRequest, EchoServiceTickerWebSocket) error {
+	return runtime.Errorf(http.StatusNotImplemented, "method not implemented")
+}
+
+func (UnimplementedEchoServiceWebServer) mustEmbedUnimplementedEchoServiceWebServer() {}
+
 type EchoServiceEchoWebSocket interface {
 	Send(*EchoResponse) error
 	Recv() (*EchoRequest, error)
 	grpc.ServerStream
 }
 
-type echoServiceEchoWebSocket struct {
+type x_EchoServiceEchoWebSocket struct {
 	Channel string
 	grpc.ServerStream
 }
 
-func (x *echoServiceEchoWebSocket) Send(m *EchoResponse) error {
+func (x *x_EchoServiceEchoWebSocket) Send(m *EchoResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *echoServiceEchoWebSocket) Recv() (*EchoRequest, error) {
+func (x *x_EchoServiceEchoWebSocket) Recv() (*EchoRequest, error) {
 	m := new(EchoRequest)
 
 	if err := x.ServerStream.RecvMsg(m); err != nil {
@@ -55,16 +68,16 @@ type EchoServiceTickerWebSocket interface {
 	grpc.ServerStream
 }
 
-type echoServiceTickerWebSocket struct {
+type x_EchoServiceTickerWebSocket struct {
 	Count int32
 	grpc.ServerStream
 }
 
-func (x *echoServiceTickerWebSocket) Send(m *TickerResponse) error {
+func (x *x_EchoServiceTickerWebSocket) Send(m *TickerResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *echoServiceTickerWebSocket) Recv() (*TickerRequest, error) {
+func (x *x_EchoServiceTickerWebSocket) Recv() (*TickerRequest, error) {
 	m := new(TickerRequest)
 
 	if err := x.ServerStream.RecvMsg(m); err != nil {
@@ -75,19 +88,6 @@ func (x *echoServiceTickerWebSocket) Recv() (*TickerRequest, error) {
 
 	return m, nil
 }
-
-// UnimplementedEchoServiceWebServer must be embedded to have forward compatible implementations.
-type UnimplementedEchoServiceWebServer struct{}
-
-func (UnimplementedEchoServiceWebServer) Echo(EchoServiceEchoWebSocket) error {
-	return runtime.Errorf(http.StatusNotImplemented, "method not implemented")
-}
-
-func (UnimplementedEchoServiceWebServer) Ticker(*TickerRequest, EchoServiceTickerWebSocket) error {
-	return runtime.Errorf(http.StatusNotImplemented, "method not implemented")
-}
-
-func (UnimplementedEchoServiceWebServer) mustEmbedUnimplementedEchoServiceWebServer() {}
 
 // ExampleServiceWebServer is the server API for ExampleService service.
 // All implementations must embed UnimplementedExampleServiceWebServer for forward compatibility.
@@ -140,12 +140,12 @@ func (UnimplementedExampleServiceWebServer) mustEmbedUnimplementedExampleService
 func RegisterEchoServiceHandler(mux runtime.ServeMuxer, server EchoServiceWebServer, interceptors ...runtime.Interceptor) {
 	router := runtime.NewRouter()
 
-	router.Handle("GET", "/api/v1/echo/:channel", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
-		handlerEchoServiceWebServerEcho(server, w, r, p, interceptors)
-	})
-
 	router.Handle("GET", "/api/v1/ticker/:count", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerEchoServiceWebServerTicker(server, w, r, p, interceptors)
+	})
+
+	router.Handle("GET", "/api/v1/echo/:channel", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
+		handlerEchoServiceWebServerEcho(server, w, r, p, interceptors)
 	})
 
 	mux.Handle("/api/v1/", router)
@@ -171,11 +171,11 @@ func RegisterExampleServiceHandler(mux runtime.ServeMuxer, server ExampleService
 		handlerExampleServiceWebServerListMessages(server, w, r, p, interceptors)
 	})
 
-	router.Handle("PUT", "/api/v1/example/messages/:id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
+	router.Handle("PUT", "/api/v1/example/messages/:message.id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerExampleServiceWebServerPutMessage(server, w, r, p, interceptors)
 	})
 
-	router.Handle("PATCH", "/api/v1/example/messages/:id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
+	router.Handle("PATCH", "/api/v1/example/messages/:message.id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerExampleServiceWebServerPatchMessage(server, w, r, p, interceptors)
 	})
 
@@ -212,7 +212,7 @@ func handlerEchoServiceWebServerEcho(server EchoServiceWebServer, w http.Respons
 
 	defer stream.Close()
 
-	streamReq := echoServiceEchoWebSocket{
+	streamReq := x_EchoServiceEchoWebSocket{
 		ServerStream: stream,
 	}
 
@@ -256,18 +256,20 @@ func handlerEchoServiceWebServerTicker(server EchoServiceWebServer, w http.Respo
 
 	defer stream.Close()
 
-	streamReq := echoServiceTickerWebSocket{
+	streamReq := x_EchoServiceTickerWebSocket{
 		ServerStream: stream,
 	}
 
-	streamReq.Count, err = runtime.ParseInt32(p.ByName("count"))
-	if err != nil {
+	if v, err := runtime.ParseInt32(p.ByName("count")); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+
 		if _, err := w.Write([]byte(err.Error())); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 
 		return
+	} else {
+		streamReq.Count = v
 	}
 
 	protoReq, err := streamReq.Recv()
@@ -329,10 +331,7 @@ func handlerExampleServiceWebServerPostMessage(server ExampleServiceWebServer, w
 		}
 
 		ctx = runtime.ContextWithFieldMask(ctx, fm)
-
-		var sub Message
-
-		err = runtime.ProtoUnmarshal(data, &sub)
+		err = runtime.ProtoUnmarshal(data, &protoReq)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			if _, err := w.Write([]byte(err.Error())); err != nil {
@@ -341,8 +340,6 @@ func handlerExampleServiceWebServerPostMessage(server ExampleServiceWebServer, w
 
 			return
 		}
-
-		protoReq.Message = &sub
 	}
 
 	msg, err := server.PostMessage(ctx, &protoReq)
@@ -357,7 +354,7 @@ func handlerExampleServiceWebServerPostMessage(server ExampleServiceWebServer, w
 		return
 	}
 
-	raw, err := runtime.ProtoMarshal(msg)
+	raw, err := runtime.ProtoMarshal(msg.GetMessage())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		if _, err := w.Write([]byte(err.Error())); err != nil {
@@ -396,14 +393,16 @@ func handlerExampleServiceWebServerGetMessage(server ExampleServiceWebServer, w 
 
 	var protoReq GetMessageRequest
 
-	protoReq.Id, err = runtime.ParseInt32(p.ByName("id"))
-	if err != nil {
+	if v, err := runtime.ParseInt32(p.ByName("id")); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+
 		if _, err := w.Write([]byte(err.Error())); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 
 		return
+	} else {
+		protoReq.Id = v
 	}
 
 	msg, err := server.GetMessage(ctx, &protoReq)
@@ -457,14 +456,16 @@ func handlerExampleServiceWebServerDeleteMessage(server ExampleServiceWebServer,
 
 	var protoReq DeleteMessageRequest
 
-	protoReq.Id, err = runtime.ParseInt32(p.ByName("id"))
-	if err != nil {
+	if v, err := runtime.ParseInt32(p.ByName("id")); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+
 		if _, err := w.Write([]byte(err.Error())); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 
 		return
+	} else {
+		protoReq.Id = v
 	}
 
 	_, err = server.DeleteMessage(ctx, &protoReq)
@@ -508,8 +509,8 @@ func handlerExampleServiceWebServerListMessages(server ExampleServiceWebServer, 
 
 	var protoReq ListMessagesRequest
 
-	if sPage, ok := r.URL.Query()["page"]; ok {
-		for _, s := range sPage {
+	if l, ok := r.URL.Query()["page"]; ok {
+		for _, s := range l {
 			v, err := runtime.ParseInt32(s)
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
@@ -526,9 +527,8 @@ func handlerExampleServiceWebServerListMessages(server ExampleServiceWebServer, 
 			continue
 		}
 	}
-
-	if sPerPage, ok := r.URL.Query()["per_page"]; ok {
-		for _, s := range sPerPage {
+	if l, ok := r.URL.Query()["per_page"]; ok {
+		for _, s := range l {
 			v, err := runtime.ParseInt32(s)
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
@@ -545,9 +545,8 @@ func handlerExampleServiceWebServerListMessages(server ExampleServiceWebServer, 
 			continue
 		}
 	}
-
-	if sIds, ok := r.URL.Query()["ids"]; ok {
-		for _, s := range sIds {
+	if l, ok := r.URL.Query()["ids"]; ok {
+		for _, s := range l {
 			v, err := runtime.ParseInt32(s)
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
@@ -592,6 +591,13 @@ func handlerExampleServiceWebServerListMessages(server ExampleServiceWebServer, 
 
 	return
 
+}
+func (x *Message) UnmarshalJSON(data []byte) error {
+	return runtime.ProtoUnmarshal(data, x)
+}
+
+func (x *Message) MarshalJSON() ([]byte, error) {
+	return runtime.ProtoMarshal(x)
 }
 
 func handlerExampleServiceWebServerPutMessage(server ExampleServiceWebServer, w http.ResponseWriter, r *http.Request, p runtime.Params, il []runtime.Interceptor) {
@@ -639,7 +645,9 @@ func handlerExampleServiceWebServerPutMessage(server ExampleServiceWebServer, w 
 
 		ctx = runtime.ContextWithFieldMask(ctx, fm)
 
-		err = runtime.ProtoUnmarshal(data, &protoReq)
+		var sub Message
+
+		err = runtime.ProtoUnmarshal(data, &sub)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			if _, err := w.Write([]byte(err.Error())); err != nil {
@@ -648,16 +656,19 @@ func handlerExampleServiceWebServerPutMessage(server ExampleServiceWebServer, w 
 
 			return
 		}
-	}
 
-	protoReq.Id, err = runtime.ParseInt32(p.ByName("id"))
-	if err != nil {
+		protoReq.Message = &sub
+	}
+	if v, err := runtime.ParseInt32(p.ByName("message.id")); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+
 		if _, err := w.Write([]byte(err.Error())); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 
 		return
+	} else {
+		protoReq.Message.Id = v
 	}
 
 	_, err = server.PutMessage(ctx, &protoReq)
@@ -740,15 +751,16 @@ func handlerExampleServiceWebServerPatchMessage(server ExampleServiceWebServer, 
 
 		protoReq.Message = &sub
 	}
-
-	protoReq.Id, err = runtime.ParseInt32(p.ByName("id"))
-	if err != nil {
+	if v, err := runtime.ParseInt32(p.ByName("message.id")); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+
 		if _, err := w.Write([]byte(err.Error())); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 
 		return
+	} else {
+		protoReq.Message.Id = v
 	}
 
 	_, err = server.PatchMessage(ctx, &protoReq)
@@ -770,12 +782,4 @@ func handlerExampleServiceWebServerPatchMessage(server ExampleServiceWebServer, 
 
 	return
 
-}
-
-func (x *Message) UnmarshalJSON(data []byte) error {
-	return runtime.ProtoUnmarshal(data, x)
-}
-
-func (x *Message) MarshalJSON() ([]byte, error) {
-	return runtime.ProtoMarshal(x)
 }

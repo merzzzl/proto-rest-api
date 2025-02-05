@@ -136,9 +136,14 @@ func (s *ExampleService) PostMessage(_ context.Context, req *pb.PostMessageReque
 	defer s.mutex.Unlock()
 
 	id := int32(len(s.storage) + 1)
-	s.storage[id] = req.GetMessage()
+	s.storage[id] = &pb.Message{
+		Id:      id,
+		Message: req.GetMessage(),
+		Author:  req.GetAuthor(),
+		Status:  req.GetStatus(),
+	}
 
-	return &pb.PostMessageResponse{Id: id}, nil
+	return &pb.PostMessageResponse{Message: s.storage[id]}, nil
 }
 
 func (s *ExampleService) GetMessage(_ context.Context, req *pb.GetMessageRequest) (*pb.GetMessageResponse, error) {
@@ -206,12 +211,12 @@ func (s *ExampleService) PutMessage(_ context.Context, req *pb.PutMessageRequest
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	_, ok := s.storage[req.GetId()]
+	_, ok := s.storage[req.GetMessage().GetId()]
 	if !ok {
 		return nil, status.Errorf(http.StatusNotFound, "message not found")
 	}
 
-	s.storage[req.GetId()] = req.GetMessage()
+	s.storage[req.GetMessage().GetId()] = req.GetMessage()
 
 	return &pb.PutMessageResponse{}, nil
 }
@@ -220,7 +225,7 @@ func (s *ExampleService) PatchMessage(ctx context.Context, req *pb.PatchMessageR
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	message, ok := s.storage[req.GetId()]
+	message, ok := s.storage[req.GetMessage().GetId()]
 	if !ok {
 		return nil, status.Errorf(http.StatusNotFound, "message not found")
 	}
@@ -230,7 +235,9 @@ func (s *ExampleService) PatchMessage(ctx context.Context, req *pb.PatchMessageR
 		runtime.MergeByMask(req.GetMessage(), message, fm)
 	}
 
-	s.storage[req.GetId()] = message
+	s.storage[req.GetMessage().GetId()] = message
 
-	return &pb.PatchMessageResponse{}, nil
+	return &pb.PatchMessageResponse{
+		Message: s.storage[req.GetMessage().GetId()],
+	}, nil
 }

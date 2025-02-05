@@ -40,32 +40,37 @@ message Author {
 }
 
 message Message {
+  int32 id = 1;       // Message ID
   string message = 2; // Message
   Author author = 3;  // Author
   Status status = 4;  // Status
 }
 
 message PatchMessageRequest {
-  int32 id = 1;        // Message ID
   Message message = 2; // Message
 }
 
-message PatchMessageResponse {}
+message PatchMessageResponse {
+  Message message = 2; // Message
+}
 
 message PostMessageRequest {
-  Message message = 1; // Message
+  string message = 2; // Message
+  Author author = 3;  // Author
+  Status status = 4;  // Status
 }
 
 message PostMessageResponse {
-  int32 id = 1; // Message ID
-}
-
-message PutMessageRequest {
-  int32 id = 1;        // Message ID
   Message message = 2; // Message
 }
 
-message PutMessageResponse {}
+message PutMessageRequest {
+  Message message = 2; // Message
+}
+
+message PutMessageResponse {
+  Message message = 2; // Message
+}
 
 message GetMessageRequest {
   int32 id = 1; // Message ID

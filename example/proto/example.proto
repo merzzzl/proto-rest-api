@@ -41,8 +41,8 @@ service ExampleService {
     option (restapi.method) = {
       method : "POST"
       path : "/messages"
-      request : ".message"
-      response : "*"
+      request : "*"
+      response : ".message"
     };
   }
 
@@ -76,8 +76,8 @@ service ExampleService {
   rpc PutMessage(PutMessageRequest) returns (PutMessageResponse) {
     option (restapi.method) = {
       method : "PUT"
-      path : "/messages/:id"
-      request : "*"
+      path : "/messages/:message.id"
+      request : ".message"
     };
   }
 
@@ -85,7 +85,7 @@ service ExampleService {
   rpc PatchMessage(PatchMessageRequest) returns (PatchMessageResponse) {
     option (restapi.method) = {
       method : "PATCH"
-      path : "/messages/:id"
+      path : "/messages/:message.id"
       request : ".message"
     };
   }

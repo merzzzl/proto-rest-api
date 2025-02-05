@@ -3,14 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
-	"unicode"
 
+	"github.com/merzzzl/proto-rest-api/cmd/protoc-gen-go-rest/gen"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/types/pluginpb"
 )
 
-var version = "0.0.0-alpha.0"
+const Version = "0.0.0-alpha.0"
 
 var requireUnimplemented *bool
 
@@ -19,7 +18,7 @@ func main() {
 	flag.Parse()
 
 	if *showVersion {
-		_, _ = fmt.Printf("protoc-gen-go-rest %v\n", version)
+		_, _ = fmt.Printf("protoc-gen-go-rest %v\n", Version)
 
 		return
 	}
@@ -47,64 +46,36 @@ func main() {
 	})
 }
 
-const (
-	errorsPackage  = protogen.GoImportPath("errors")
-	contextPackage = protogen.GoImportPath("context")
-	ioPackage      = protogen.GoImportPath("io")
-	httpPackage    = protogen.GoImportPath("net/http")
-	jsonPackage    = protogen.GoImportPath("encoding/json")
-	grpcPackage    = protogen.GoImportPath("google.golang.org/grpc")
-	runtimePackage = protogen.GoImportPath("github.com/merzzzl/proto-rest-api/runtime")
-)
-
-const (
-	serviceSufix = "WebServer"
-)
-
-const deprecationComment = "// Deprecated: Do not use."
-
-var genQueue = make([]func(), 0)
-
-func generateFile(gen *protogen.Plugin, file *protogen.File) *protogen.GeneratedFile {
+func generateFile(plug *protogen.Plugin, file *protogen.File) *protogen.GeneratedFile {
 	filename := file.GeneratedFilenamePrefix + "_rest.pb.go"
-	g := gen.NewGeneratedFile(filename, file.GoImportPath)
+	g := plug.NewGeneratedFile(filename, file.GoImportPath)
 
-	genHeader(gen, g, file)
+	gen.FileHeader(plug, g, file, Version)
+	g.P()
 
 	for _, service := range file.Services {
-		genServiceStructs(g, service)
+		gen.WebService(g, service, *requireUnimplemented)
+		g.P()
+		gen.WebSocket(g, service)
+		g.P()
 	}
 
 	for _, service := range file.Services {
-		genRegisterHandler(g, service)
+		gen.RegisterHandler(g, service)
+		g.P()
 	}
 
 	for _, service := range file.Services {
 		for _, method := range service.Methods {
-			genHandler(g, service, method)
+			if method.Desc.IsStreamingServer() || method.Desc.IsStreamingClient() {
+				gen.StreamHandler(g, service, method)
+			} else {
+				gen.UnaryHandler(g, service, method)
+			}
+
+			g.P()
 		}
 	}
 
-	for _, f := range genQueue {
-		f()
-	}
-
 	return g
-}
-
-func exitWithError(message string) {
-	_, _ = fmt.Fprintln(os.Stderr, message)
-
-	os.Exit(1)
-}
-
-func lowerFirst(s string) string {
-	if s == "" {
-		return ""
-	}
-
-	r := []rune(s)
-	r[0] = unicode.ToLower(r[0])
-
-	return string(r)
 }

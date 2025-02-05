@@ -2,7 +2,7 @@
     "openapi": "3.0.3",
     "info": {
         "title": "Api",
-        "version": "2025-02-04"
+        "version": "2025-02-05"
     },
     "consumes": [
         "application/json"
@@ -119,7 +119,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/definitions/PostMessageRequest_Message"
+                                "$ref": "#/definitions/PostMessageRequest"
                             }
                         }
                     },
@@ -131,7 +131,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/definitions/PostMessageResponse"
+                                    "$ref": "#/definitions/PostMessageResponse_Message"
                                 }
                             }
                         }
@@ -194,7 +194,9 @@
                         }
                     }
                 }
-            },
+            }
+        },
+        "/api/v1/example/messages/{message.id}": {
             "patch": {
                 "summary": "PATCH message to the server.",
                 "operationId": "ExampleService_PatchMessage",
@@ -203,14 +205,9 @@
                 ],
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "message.id",
                         "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "format": "int32"
-                        },
-                        "description": "Message ID"
+                        "required": true
                     }
                 ],
                 "requestBody": {
@@ -238,14 +235,9 @@
                 ],
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "message.id",
                         "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "format": "int32"
-                        },
-                        "description": "Message ID"
+                        "required": true
                     }
                 ],
                 "requestBody": {
@@ -253,7 +245,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/definitions/PutMessageRequest"
+                                "$ref": "#/definitions/PutMessageRequest_Message"
                             }
                         }
                     },
@@ -376,6 +368,10 @@
                 "author": {
                     "$ref": "#/definitions/Author"
                 },
+                "id": {
+                    "type": "integer",
+                    "format": "int32"
+                },
                 "message": {
                     "type": "string"
                 },
@@ -392,29 +388,30 @@
         "PatchMessageRequest_Message": {
             "$ref": "#/definitions/Message"
         },
-        "PostMessageRequest_Message": {
-            "$ref": "#/definitions/Message"
-        },
-        "PostMessageResponse": {
+        "PostMessageRequest": {
             "type": "object",
             "properties": {
-                "id": {
-                    "type": "integer",
-                    "format": "int32"
-                }
-            }
-        },
-        "PutMessageRequest": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer",
-                    "format": "int32"
+                "author": {
+                    "$ref": "#/definitions/Author"
                 },
                 "message": {
-                    "$ref": "#/definitions/Message"
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "STATUS_UNSPECIFIED",
+                        "STATUS_DRAFT",
+                        "STATUS_PUBLISHED"
+                    ]
                 }
             }
+        },
+        "PostMessageResponse_Message": {
+            "$ref": "#/definitions/Message"
+        },
+        "PutMessageRequest_Message": {
+            "$ref": "#/definitions/Message"
         },
         "TickerRequest": {
             "type": "object",

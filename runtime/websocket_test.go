@@ -22,16 +22,19 @@ type MockWebSocketConn struct {
 
 func (m *MockWebSocketConn) WriteMessage(messageType int, data []byte) error {
 	args := m.Called(messageType, data)
+
 	return args.Error(0)
 }
 
 func (m *MockWebSocketConn) ReadMessage() (int, []byte, error) {
 	args := m.Called()
+
 	return args.Int(0), args.Get(1).([]byte), args.Error(2)
 }
 
 func (m *MockWebSocketConn) WriteControl(messageType int, data []byte, deadline time.Time) error {
 	args := m.Called(messageType, data, deadline)
+
 	return args.Error(0)
 }
 
@@ -41,11 +44,16 @@ func (m *MockWebSocketConn) SetCloseHandler(h func(code int, text string) error)
 
 func (m *MockWebSocketConn) Close() error {
 	args := m.Called()
+
 	return args.Error(0)
 }
 
 func TestStreamWithMocks(t *testing.T) {
+	t.Parallel()
+
 	t.Run("NewWebSocketStream", func(t *testing.T) {
+		t.Parallel()
+
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			stream, err := NewWebSocketStream(w, r)
 			require.NoError(t, err, "NewWebSocketStream should not return an error")
@@ -59,6 +67,8 @@ func TestStreamWithMocks(t *testing.T) {
 	})
 
 	t.Run("Context", func(t *testing.T) {
+		t.Parallel()
+
 		mockConn := new(MockWebSocketConn)
 		stream := &Stream{
 			context: context.Background(),
@@ -70,6 +80,8 @@ func TestStreamWithMocks(t *testing.T) {
 	})
 
 	t.Run("RecvMsg", func(t *testing.T) {
+		t.Parallel()
+
 		mockConn := new(MockWebSocketConn)
 		msg := timestamppb.Now()
 		bts, _ := ProtoMarshal(msg)
@@ -84,10 +96,12 @@ func TestStreamWithMocks(t *testing.T) {
 
 		err := stream.RecvMsg(&out)
 		require.NoError(t, err, "RecvMsg should not return an error")
-		require.Equal(t, out.Seconds, msg.Seconds, "RecvMsg should correctly unmarshal the message")
+		require.Equal(t, out.GetSeconds(), msg.GetSeconds(), "RecvMsg should correctly unmarshal the message")
 	})
 
 	t.Run("SetTrailer", func(t *testing.T) {
+		t.Parallel()
+
 		mockConn := new(MockWebSocketConn)
 		stream := &Stream{
 			conn:    mockConn,
@@ -100,6 +114,8 @@ func TestStreamWithMocks(t *testing.T) {
 	})
 
 	t.Run("WriteError", func(t *testing.T) {
+		t.Parallel()
+
 		mockConn := new(MockWebSocketConn)
 		mockConn.On("WriteControl", websocket.CloseMessage, mock.Anything, mock.Anything).
 			Return(nil)
@@ -114,6 +130,8 @@ func TestStreamWithMocks(t *testing.T) {
 	})
 
 	t.Run("SendHeader", func(t *testing.T) {
+		t.Parallel()
+
 		mockConn := new(MockWebSocketConn)
 		mockConn.On("WriteMessage", websocket.TextMessage, mock.Anything).
 			Return(nil)
@@ -130,6 +148,8 @@ func TestStreamWithMocks(t *testing.T) {
 	})
 
 	t.Run("Close", func(t *testing.T) {
+		t.Parallel()
+
 		mockConn := new(MockWebSocketConn)
 		mockConn.On("WriteMessage", websocket.TextMessage, mock.Anything).
 			Return(nil)
@@ -148,6 +168,8 @@ func TestStreamWithMocks(t *testing.T) {
 	})
 
 	t.Run("SendMsg", func(t *testing.T) {
+		t.Parallel()
+
 		mockConn := new(MockWebSocketConn)
 		mockConn.On("WriteMessage", websocket.TextMessage, mock.Anything).
 			Return(nil)

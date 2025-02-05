@@ -25,7 +25,7 @@ func ValidateMD(md metadata.MD) error {
 }
 
 func hasNotPrintable(msg string) bool {
-	for i := 0; i < len(msg); i++ {
+	for i := range len(msg) {
 		if msg[i] < 0x20 || msg[i] > 0x7E {
 			return true
 		}
@@ -43,7 +43,7 @@ func validatePair(key string, vals ...string) error {
 		return nil
 	}
 
-	for i := 0; i < len(key); i++ {
+	for i := range len(key) {
 		r := key[i]
 		if !(r >= 'a' && r <= 'z') && !(r >= '0' && r <= '9') && r != '.' && r != '-' && r != '_' {
 			return fmt.Errorf("%w in %q", ErrContainsIllegal, key)

@@ -17,7 +17,7 @@ func MethodsPaths(service *protogen.Service) (map[*protogen.Method]*restapi.Meth
 	}
 
 	usedPaths := &methodNode{next: make(map[string]*methodNode), method: make(map[string]*protogen.Method)}
-	methods := make(map[*protogen.Method]*restapi.MethodRule)
+	methods := make(map[*protogen.Method]*restapi.MethodRule, len(service.Methods))
 
 	for _, method := range service.Methods {
 		methodOptions, ok := method.Desc.Options().(*descriptorpb.MethodOptions)

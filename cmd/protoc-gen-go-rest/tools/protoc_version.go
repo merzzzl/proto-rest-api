@@ -18,7 +18,9 @@ func ProtocVersion(gen *protogen.Plugin) string {
 	}
 
 	var sb strings.Builder
+
 	fmt.Fprintf(&sb, "v%d.%d.%d", v.GetMajor(), v.GetMinor(), v.GetPatch())
+
 	if s := v.GetSuffix(); s != "" {
 		fmt.Fprintf(&sb, "-%s", s)
 	}

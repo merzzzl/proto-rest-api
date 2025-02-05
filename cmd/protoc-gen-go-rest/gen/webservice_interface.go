@@ -44,7 +44,7 @@ func WebServiceInterface(g *protogen.GeneratedFile, service *protogen.Service, r
 			reqArgs = append(reqArgs, method.Parent.GoName+method.GoName+"WebSocket")
 		}
 
-		g.P(method.Comments.Leading, method.GoName + "(" + strings.Join(reqArgs, ", ") + ") " + ret)
+		g.P(method.Comments.Leading, method.GoName+"("+strings.Join(reqArgs, ", ")+") "+ret)
 	}
 
 	if requireUnimplemented {

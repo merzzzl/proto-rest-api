@@ -2,6 +2,7 @@ linters:
   enable-all: true
   disable:
     - depguard
+    - dupl
     - lll
     - gomnd
     - exhaustivestruct
@@ -9,12 +10,13 @@ linters:
     - exhaustruct
     - cyclop
     - funlen
+    - tagliatelle
     - gochecknoglobals
     - gochecknoinits
+    - wrapcheck
     - gocognit
     - gocyclo
     - maintidx
-    - forbidigo
     - nonamedreturns
     - scopelint
     - interfacer
@@ -28,25 +30,26 @@ linters:
     - nestif
     - goconst
     - bodyclose
-    - dupl
+    - forbidigo
+    - zerologlint
+    - ireturn
+    - execinquery
 linters-settings:
-  gci:
-    sections:
-      - standard
-      - default
-      - prefix(github.com/merzzzl)
+  gosec:
+    confidence: high
+    severity: high
+    excludes:
+      - G404
+  perfsprint:
+    strconcat: false
   unused:
     local-variables-are-used: false
   nakedret:
     max-func-lines: 0
-  perfsprint:
-    strconcat: false
   govet:
-    check-shadowing: true
     enable-all: true
     disable:
       - shadow
-      - fieldalignment
   gofmt:
     rewrite-rules:
       - pattern: "interface{}"
@@ -60,8 +63,6 @@ linters-settings:
   revive:
     enable-all-rules: true
     rules:
-      - name: deep-exit
-        disabled: true
       - name: line-length-limit
         disabled: true
       - name: comment-spacings
@@ -85,6 +86,8 @@ linters-settings:
         disabled: true
       - name: flag-parameter
         disabled: true
+      - name: nested-structs
+        disabled: true
   gocritic:
     enabled-tags:
       - diagnostic
@@ -94,7 +97,6 @@ linters-settings:
     disabled-checks:
       - unnamedResult
   gofumpt:
-    module-path: github.com/merzzzl/proto-rest-api
     extra-rules: true
   testifylint:
     enable-all: true
@@ -104,12 +106,9 @@ linters-settings:
         json: goCamel
         yaml: goCamel
 run:
-  skip-files:
-    - "zz_generated.*\\.go$"
   allow-parallel-runners: true
-  go: "1.20"
+  go: "1.22"
 output:
-  uniq-by-line: false
   sort-results: true
 issues:
   max-issues-per-linter: 0

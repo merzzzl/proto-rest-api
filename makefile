@@ -27,3 +27,7 @@ proto-example:
 		--go-oapi_out=example \
 		--go-rest_out=example \
 		example/proto/*.proto
+
+lint:
+	go mod tidy
+	golangci-lint run --fix --show-stats --max-issues-per-linter 0 --max-same-issues 0

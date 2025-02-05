@@ -2,7 +2,9 @@ package tools
 
 import "errors"
 
-var ErrPathAlreadyExists = errors.New("path already exists")
-var ErrFieldNotFound = errors.New("field not found")
-var ErrUnsupportedFieldType = errors.New("unsupported field type")
-var ErrInvalidPath = errors.New("invalid path")
+var (
+	ErrPathAlreadyExists    = errors.New("path already exists")
+	ErrFieldNotFound        = errors.New("field not found")
+	ErrUnsupportedFieldType = errors.New("unsupported field type")
+	ErrInvalidPath          = errors.New("invalid path")
+)

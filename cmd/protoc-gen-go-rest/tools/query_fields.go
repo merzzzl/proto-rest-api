@@ -11,7 +11,7 @@ import (
 )
 
 func QueryFields(method *protogen.Method) (map[string]*protogen.Field, error) {
-	fields := make(map[string]*protogen.Field)
+	fields := make(map[string]*protogen.Field, 10)
 
 	methodOptions, ok := method.Desc.Options().(*descriptorpb.MethodOptions)
 	if !ok {

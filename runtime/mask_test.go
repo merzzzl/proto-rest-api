@@ -3,15 +3,18 @@ package runtime_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
-	"google.golang.org/protobuf/encoding/protojson"
-
 	pb "github.com/merzzzl/proto-rest-api/example/api"
 	"github.com/merzzzl/proto-rest-api/runtime"
+	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func TestMergeByMask(t *testing.T) {
+	t.Parallel()
+
 	t.Run("merge fields by mask", func(t *testing.T) {
+		t.Parallel()
+
 		msg := &pb.Message{
 			Message: "hello",
 			Author: &pb.Author{

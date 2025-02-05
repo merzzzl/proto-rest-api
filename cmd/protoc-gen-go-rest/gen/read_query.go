@@ -3,10 +3,9 @@ package gen
 import (
 	"fmt"
 
+	"github.com/merzzzl/proto-rest-api/cmd/protoc-gen-go-rest/tools"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/reflect/protoreflect"
-
-	"github.com/merzzzl/proto-rest-api/cmd/protoc-gen-go-rest/tools"
 )
 
 func ReadQuery(g *protogen.GeneratedFile, method *protogen.Method, varName string) error {

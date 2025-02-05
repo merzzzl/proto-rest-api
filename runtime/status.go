@@ -3,8 +3,8 @@ package runtime
 import "fmt"
 
 type HTTPError struct {
-	code    int    // http status code
-	message string // http status message
+	message string
+	code    int
 }
 
 func NewError(code int, msg string) *HTTPError {

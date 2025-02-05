@@ -1,6 +1,7 @@
 package gen
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -54,7 +55,7 @@ func RegisterHandler(g *protogen.GeneratedFile, service *protogen.Service) error
 		}
 
 		if subPath == "/" || subPath == "" {
-			return fmt.Errorf("empty path is not allowed")
+			return errors.New("empty path is not allowed")
 		}
 
 		if !strings.HasPrefix(subPath, "/") {

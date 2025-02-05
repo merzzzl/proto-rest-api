@@ -3,13 +3,14 @@ package runtime_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	pb "github.com/merzzzl/proto-rest-api/example/api"
 	"github.com/merzzzl/proto-rest-api/runtime"
+	"github.com/stretchr/testify/require"
 )
 
 func TestProtoUnmarshal(t *testing.T) {
+	t.Parallel()
+
 	t.Run("valid proto message", func(t *testing.T) {
 		t.Parallel()
 
@@ -32,6 +33,8 @@ func TestProtoUnmarshal(t *testing.T) {
 }
 
 func TestProtoMarshal(t *testing.T) {
+	t.Parallel()
+
 	t.Run("valid proto message", func(t *testing.T) {
 		t.Parallel()
 

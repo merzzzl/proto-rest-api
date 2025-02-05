@@ -22,11 +22,11 @@ type Conn interface {
 }
 
 type Stream struct {
-	context context.Context //nolint:containedctx // need for stream impl
+	context context.Context
 	conn    Conn
-	closed  atomic.Bool
 	header  metadata.MD
 	trailer metadata.MD
+	closed  atomic.Bool
 }
 
 var (

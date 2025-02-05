@@ -4,17 +4,16 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"slices"
 	"strconv"
 	"sync"
 	"time"
 
-	"golang.org/x/exp/slices"
+	pb "github.com/merzzzl/proto-rest-api/example/api"
+	"github.com/merzzzl/proto-rest-api/runtime"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
-
-	pb "github.com/merzzzl/proto-rest-api/example/api"
-	"github.com/merzzzl/proto-rest-api/runtime"
 )
 
 func main() {
@@ -57,7 +56,7 @@ func NewEchoService() *EchoService {
 func (EchoService) Ticker(m *pb.TickerRequest, s pb.EchoServiceTickerWebSocket) error {
 	sendMessageCount := 0
 
-	for i := int32(0); i < m.GetCount(); i++ {
+	for range m.GetCount() {
 		err := s.Send(&pb.TickerResponse{
 			Timestamp: timestamppb.Now(),
 		})
@@ -179,6 +178,7 @@ func (s *ExampleService) ListMessages(_ context.Context, req *pb.ListMessagesReq
 	defer s.mutex.Unlock()
 
 	messages := make([]*pb.Message, 0, len(s.storage))
+
 	for id, message := range s.storage {
 		if len(req.GetIds()) > 0 {
 			if !slices.Contains(req.GetIds(), id) {

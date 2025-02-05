@@ -6,9 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/merzzzl/proto-rest-api/runtime"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFS_0(t *testing.T) {

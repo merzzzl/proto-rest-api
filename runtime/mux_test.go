@@ -6,9 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/merzzzl/proto-rest-api/runtime"
+	"github.com/stretchr/testify/require"
 )
 
 func TestServeHTTP_0(t *testing.T) {

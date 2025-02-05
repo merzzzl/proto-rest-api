@@ -3,15 +3,19 @@ package runtime_test
 import (
 	"testing"
 
+	"github.com/merzzzl/proto-rest-api/runtime"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/metadata"
-	"github.com/merzzzl/proto-rest-api/runtime"
 )
 
 func TestValidateMD(t *testing.T) {
+	t.Parallel()
+
 	t.Run("valid metadata", func(t *testing.T) {
+		t.Parallel()
+
 		md := metadata.MD{
-			"key": []string{"value1", "value2"},
+			"key":         []string{"value1", "value2"},
 			"another-key": []string{"value"},
 		}
 
@@ -20,6 +24,8 @@ func TestValidateMD(t *testing.T) {
 	})
 
 	t.Run("empty header key", func(t *testing.T) {
+		t.Parallel()
+
 		md := metadata.MD{
 			"": []string{"value"},
 		}
@@ -29,6 +35,8 @@ func TestValidateMD(t *testing.T) {
 	})
 
 	t.Run("non-printable characters in value", func(t *testing.T) {
+		t.Parallel()
+
 		md := metadata.MD{
 			"key": []string{"value1", "val\x01ue2"},
 		}
@@ -38,6 +46,8 @@ func TestValidateMD(t *testing.T) {
 	})
 
 	t.Run("illegal characters in key", func(t *testing.T) {
+		t.Parallel()
+
 		md := metadata.MD{
 			"invalid:key": []string{"value"},
 		}
@@ -48,6 +58,8 @@ func TestValidateMD(t *testing.T) {
 	})
 
 	t.Run("binary key suffix", func(t *testing.T) {
+		t.Parallel()
+
 		md := metadata.MD{
 			"key-bin": []string{"binarydata"},
 		}

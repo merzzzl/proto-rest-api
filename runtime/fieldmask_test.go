@@ -5,9 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/merzzzl/proto-rest-api/runtime"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetFieldMaskJS_0(t *testing.T) {

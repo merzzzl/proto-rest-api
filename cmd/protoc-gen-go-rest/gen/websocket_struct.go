@@ -3,9 +3,8 @@ package gen
 import (
 	"fmt"
 
-	"google.golang.org/protobuf/compiler/protogen"
-
 	"github.com/merzzzl/proto-rest-api/cmd/protoc-gen-go-rest/tools"
+	"google.golang.org/protobuf/compiler/protogen"
 )
 
 func WebSocketStruct(g *protogen.GeneratedFile, service *protogen.Service, method *protogen.Method) error {

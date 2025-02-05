@@ -4,11 +4,10 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/merzzzl/proto-rest-api/runtime"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	"github.com/merzzzl/proto-rest-api/runtime"
 )
 
 func TestGetHTTPStatusFromError_0(t *testing.T) {

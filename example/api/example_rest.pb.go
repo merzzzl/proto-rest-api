@@ -155,6 +155,14 @@ func RegisterEchoServiceHandler(mux runtime.ServeMuxer, server EchoServiceWebSer
 func RegisterExampleServiceHandler(mux runtime.ServeMuxer, server ExampleServiceWebServer, interceptors ...runtime.Interceptor) {
 	router := runtime.NewRouter()
 
+	router.Handle("GET", "/api/v1/example/messages/:id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
+		handlerExampleServiceWebServerGetMessage(server, w, r, p, interceptors)
+	})
+
+	router.Handle("DELETE", "/api/v1/example/messages/:id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
+		handlerExampleServiceWebServerDeleteMessage(server, w, r, p, interceptors)
+	})
+
 	router.Handle("GET", "/api/v1/example/messages", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerExampleServiceWebServerListMessages(server, w, r, p, interceptors)
 	})
@@ -169,14 +177,6 @@ func RegisterExampleServiceHandler(mux runtime.ServeMuxer, server ExampleService
 
 	router.Handle("POST", "/api/v1/example/messages", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerExampleServiceWebServerPostMessage(server, w, r, p, interceptors)
-	})
-
-	router.Handle("GET", "/api/v1/example/messages/:id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
-		handlerExampleServiceWebServerGetMessage(server, w, r, p, interceptors)
-	})
-
-	router.Handle("DELETE", "/api/v1/example/messages/:id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
-		handlerExampleServiceWebServerDeleteMessage(server, w, r, p, interceptors)
 	})
 
 	mux.Handle("/api/v1/example/", router)

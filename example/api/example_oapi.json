@@ -2,7 +2,7 @@
     "openapi": "3.0.3",
     "info": {
         "title": "Api",
-        "version": "2025-02-05"
+        "version": "2025-02-25"
     },
     "consumes": [
         "application/json"

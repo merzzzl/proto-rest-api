@@ -50,27 +50,51 @@ func generateFile(plug *protogen.Plugin, file *protogen.File) *protogen.Generate
 	filename := file.GeneratedFilenamePrefix + "_rest.pb.go"
 	g := plug.NewGeneratedFile(filename, file.GoImportPath)
 
-	gen.FileHeader(plug, g, file, Version)
+	if err := gen.FileHeader(plug, g, file, Version); err != nil {
+		plug.Error(err)
+
+		return nil
+	}
+
 	g.P()
 
 	for _, service := range file.Services {
 		gen.WebService(g, service, *requireUnimplemented)
 		g.P()
-		gen.WebSocket(g, service)
+
+		if err := gen.WebSocket(g, service); err != nil {
+			plug.Error(err)
+
+			return nil
+		}
+
 		g.P()
 	}
 
 	for _, service := range file.Services {
-		gen.RegisterHandler(g, service)
+		if err := gen.RegisterHandler(g, service); err != nil {
+			plug.Error(err)
+
+			return nil
+		}
+
 		g.P()
 	}
 
 	for _, service := range file.Services {
 		for _, method := range service.Methods {
 			if method.Desc.IsStreamingServer() || method.Desc.IsStreamingClient() {
-				gen.StreamHandler(g, service, method)
+				if err := gen.StreamHandler(g, service, method); err != nil {
+					plug.Error(err)
+
+					return nil
+				}
 			} else {
-				gen.UnaryHandler(g, service, method)
+				if err := gen.UnaryHandler(g, service, method); err != nil {
+					plug.Error(err)
+
+					return nil
+				}
 			}
 
 			g.P()

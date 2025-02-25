@@ -34,6 +34,7 @@ linters:
     - zerologlint
     - ireturn
     - execinquery
+    - exhaustive
 linters-settings:
   gosec:
     confidence: high

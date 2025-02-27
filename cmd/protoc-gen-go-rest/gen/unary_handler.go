@@ -59,13 +59,9 @@ func UnaryHandler(g *protogen.GeneratedFile, service *protogen.Service, method *
 		return err
 	}
 
-	g.P()
-
 	if err := ReadQuery(g, method, "protoReq"); err != nil {
 		return err
 	}
-
-	g.P()
 
 	if restRule.GetResponse() != "" {
 		if err := UnaryHandlerResponse(g, method, restRule, genQueue); err != nil {

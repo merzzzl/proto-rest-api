@@ -70,6 +70,8 @@ func ReadQuery(g *protogen.GeneratedFile, method *protogen.Method, varName strin
 		default:
 			return fmt.Errorf("unsupported type %s", field.Desc.Kind())
 		}
+
+		g.P()
 	}
 
 	return nil

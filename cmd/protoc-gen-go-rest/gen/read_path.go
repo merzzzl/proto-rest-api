@@ -42,6 +42,8 @@ func ReadPath(g *protogen.GeneratedFile, method *protogen.Method, varName string
 		default:
 			return fmt.Errorf("unsupported type %s", field.Desc.Kind())
 		}
+
+		g.P()
 	}
 
 	return nil

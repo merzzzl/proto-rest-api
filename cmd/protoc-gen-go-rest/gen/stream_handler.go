@@ -72,13 +72,9 @@ func StreamHandler(g *protogen.GeneratedFile, service *protogen.Service, method 
 		return err
 	}
 
-	g.P()
-
 	if err := ReadQuery(g, method, "streamReq"); err != nil {
 		return err
 	}
-
-	g.P()
 
 	if method.Desc.IsStreamingClient() {
 		g.P("if err := server.", method.GoName, "(&streamReq); err != nil {")

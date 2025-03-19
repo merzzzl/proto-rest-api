@@ -31,7 +31,16 @@ extend google.protobuf.ServiceOptions {
   ServiceRule service = 70002;
 }
 
+enum AuthType {
+  // No authentication is required.
+  AUTH_TYPE_NONE = 0;
+
+  // The request must be authenticated using the Bearer token.
+  AUTH_TYPE_BEARER = 1;
+}
+
 message ServiceRule {
   // The base path for all HTTP bindings in this service.
   string base_path = 1;
+  AuthType auth = 2;
 }

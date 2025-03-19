@@ -34,6 +34,7 @@ service EchoService {
 service ExampleService {
   option (restapi.service) = {
     base_path : "/api/v1/example"
+    auth : AUTH_TYPE_BEARER
   };
 
   // POST new message to the server.

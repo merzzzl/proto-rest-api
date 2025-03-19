@@ -155,6 +155,10 @@ func RegisterEchoServiceHandler(mux runtime.ServeMuxer, server EchoServiceWebSer
 func RegisterExampleServiceHandler(mux runtime.ServeMuxer, server ExampleServiceWebServer, interceptors ...runtime.Interceptor) {
 	router := runtime.NewRouter()
 
+	router.Handle("POST", "/api/v1/example/messages", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
+		handlerExampleServiceWebServerPostMessage(server, w, r, p, interceptors)
+	})
+
 	router.Handle("GET", "/api/v1/example/messages/:id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerExampleServiceWebServerGetMessage(server, w, r, p, interceptors)
 	})
@@ -173,10 +177,6 @@ func RegisterExampleServiceHandler(mux runtime.ServeMuxer, server ExampleService
 
 	router.Handle("PATCH", "/api/v1/example/messages/:message.id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerExampleServiceWebServerPatchMessage(server, w, r, p, interceptors)
-	})
-
-	router.Handle("POST", "/api/v1/example/messages", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
-		handlerExampleServiceWebServerPostMessage(server, w, r, p, interceptors)
 	})
 
 	mux.Handle("/api/v1/example/", router)
@@ -527,6 +527,7 @@ func handlerExampleServiceWebServerListMessages(server ExampleServiceWebServer, 
 			continue
 		}
 	}
+
 	if l, ok := r.URL.Query()["per_page"]; ok {
 		for _, s := range l {
 			v, err := runtime.ParseInt32(s)
@@ -545,6 +546,7 @@ func handlerExampleServiceWebServerListMessages(server ExampleServiceWebServer, 
 			continue
 		}
 	}
+
 	if l, ok := r.URL.Query()["ids"]; ok {
 		for _, s := range l {
 			v, err := runtime.ParseInt32(s)

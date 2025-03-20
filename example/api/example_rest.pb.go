@@ -156,6 +156,10 @@ func (UnimplementedExampleServiceWebServer) mustEmbedUnimplementedExampleService
 func RegisterEchoServiceHandler(mux runtime.ServeMuxer, server EchoServiceWebServer, interceptors ...runtime.Interceptor) {
 	router := runtime.NewRouter()
 
+	router.Handle("GET", "/api/v1/ticker/:count", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
+		handlerEchoServiceWebServerTicker(server, w, r, p, interceptors)
+	})
+
 	router.Handle("POST", "/api/v1/blackhole", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerEchoServiceWebServerBlackhole(server, w, r, p, interceptors)
 	})
@@ -164,20 +168,12 @@ func RegisterEchoServiceHandler(mux runtime.ServeMuxer, server EchoServiceWebSer
 		handlerEchoServiceWebServerEcho(server, w, r, p, interceptors)
 	})
 
-	router.Handle("GET", "/api/v1/ticker/:count", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
-		handlerEchoServiceWebServerTicker(server, w, r, p, interceptors)
-	})
-
 	mux.Handle("/api/v1/", router)
 }
 
 // RegisterExampleServiceHandler registers the http handlers for service ExampleService to "mux".
 func RegisterExampleServiceHandler(mux runtime.ServeMuxer, server ExampleServiceWebServer, interceptors ...runtime.Interceptor) {
 	router := runtime.NewRouter()
-
-	router.Handle("PUT", "/api/v1/example/messages/:message.id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
-		handlerExampleServiceWebServerPutMessage(server, w, r, p, interceptors)
-	})
 
 	router.Handle("PATCH", "/api/v1/example/messages/:message.id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerExampleServiceWebServerPatchMessage(server, w, r, p, interceptors)
@@ -197,6 +193,10 @@ func RegisterExampleServiceHandler(mux runtime.ServeMuxer, server ExampleService
 
 	router.Handle("GET", "/api/v1/example/messages", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerExampleServiceWebServerListMessages(server, w, r, p, interceptors)
+	})
+
+	router.Handle("PUT", "/api/v1/example/messages/:message.id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
+		handlerExampleServiceWebServerPutMessage(server, w, r, p, interceptors)
 	})
 
 	mux.Handle("/api/v1/example/", router)

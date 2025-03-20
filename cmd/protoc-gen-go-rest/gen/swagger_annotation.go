@@ -150,7 +150,12 @@ func swaggerAnnotation(g *protogen.GeneratedFile, file *protogen.File, service *
 			return fmt.Errorf("failed to convert type for %s: %w", field.GoIdent, err)
 		}
 
-		g.P("// @Param ", param, " path ", t, " ", mandatory, " \"", tools.LineComments(field.Comments), "\"")
+		commnet := tools.LineComments(field.Comments)
+		if commnet == "" {
+			commnet = "path parameter"
+		}
+
+		g.P("// @Param ", param, " path ", t, " ", mandatory, " \"", commnet, "\"")
 	}
 
 	for param, field := range queryFields {
@@ -169,7 +174,12 @@ func swaggerAnnotation(g *protogen.GeneratedFile, file *protogen.File, service *
 			t = "[]" + t
 		}
 
-		g.P("// @Param ", param, " query ", t, " ", mandatory, " \"", tools.LineComments(field.Comments), "\"")
+		comment := tools.LineComments(field.Comments)
+		if comment == "" {
+			comment = "query parameter"
+		}
+
+		g.P("// @Param ", param, " query ", t, " ", mandatory, " \"", comment, "\"")
 	}
 
 	if rspBody != nil {

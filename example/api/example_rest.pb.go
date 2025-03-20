@@ -11,6 +11,7 @@ import (
 	json "encoding/json"
 	runtime "github.com/merzzzl/proto-rest-api/runtime"
 	grpc "google.golang.org/grpc"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	io "io"
 	http "net/http"
 	strings "strings"
@@ -30,6 +31,7 @@ import (
 type EchoServiceWebServer interface {
 	Echo(EchoServiceEchoWebSocket) error
 	Ticker(*TickerRequest, EchoServiceTickerWebSocket) error
+	Blackhole(context.Context, *EchoRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedEchoServiceWebServer()
 }
 
@@ -42,6 +44,10 @@ func (UnimplementedEchoServiceWebServer) Echo(EchoServiceEchoWebSocket) error {
 
 func (UnimplementedEchoServiceWebServer) Ticker(*TickerRequest, EchoServiceTickerWebSocket) error {
 	return runtime.Errorf(http.StatusNotImplemented, "method not implemented")
+}
+
+func (UnimplementedEchoServiceWebServer) Blackhole(context.Context, *EchoRequest) (*emptypb.Empty, error) {
+	return nil, runtime.Errorf(http.StatusNotImplemented, "method not implemented")
 }
 
 func (UnimplementedEchoServiceWebServer) mustEmbedUnimplementedEchoServiceWebServer() {}
@@ -158,16 +164,16 @@ func RegisterEchoServiceHandler(mux runtime.ServeMuxer, server EchoServiceWebSer
 		handlerEchoServiceWebServerTicker(server, w, r, p, interceptors)
 	})
 
+	router.Handle("POST", "/api/v1/blackhole", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
+		handlerEchoServiceWebServerBlackhole(server, w, r, p, interceptors)
+	})
+
 	mux.Handle("/api/v1/", router)
 }
 
 // RegisterExampleServiceHandler registers the http handlers for service ExampleService to "mux".
 func RegisterExampleServiceHandler(mux runtime.ServeMuxer, server ExampleServiceWebServer, interceptors ...runtime.Interceptor) {
 	router := runtime.NewRouter()
-
-	router.Handle("PATCH", "/api/v1/example/messages/:message.id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
-		handlerExampleServiceWebServerPatchMessage(server, w, r, p, interceptors)
-	})
 
 	router.Handle("POST", "/api/v1/example/messages", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerExampleServiceWebServerPostMessage(server, w, r, p, interceptors)
@@ -187,6 +193,10 @@ func RegisterExampleServiceHandler(mux runtime.ServeMuxer, server ExampleService
 
 	router.Handle("PUT", "/api/v1/example/messages/:message.id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerExampleServiceWebServerPutMessage(server, w, r, p, interceptors)
+	})
+
+	router.Handle("PATCH", "/api/v1/example/messages/:message.id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
+		handlerExampleServiceWebServerPatchMessage(server, w, r, p, interceptors)
 	})
 
 	mux.Handle("/api/v1/example/", router)
@@ -294,6 +304,101 @@ func handlerEchoServiceWebServerTicker(server EchoServiceWebServer, w http.Respo
 
 		return
 	}
+
+}
+
+// Blackhole
+//	@Tags	EchoService
+//	@Summary
+//	@Description
+//	@Accept		json
+//	@Param		request	body	api.EchoRequest	true	"body of the request"
+//	@Produce	json
+//	@Success	200	{object}	emptypb.Empty
+//	@Router		/api/v1/blackhole [POST]
+func handlerEchoServiceWebServerBlackhole(server EchoServiceWebServer, w http.ResponseWriter, r *http.Request, _ runtime.Params, il []runtime.Interceptor) {
+	ctx, cancel := context.WithCancel(r.Context())
+	defer cancel()
+
+	ctx, err := runtime.ApplyInterceptors(ctx, r, il...)
+	if err != nil {
+		errstatus := runtime.GetHTTPStatusFromError(err)
+
+		w.WriteHeader(errstatus.Code())
+		if _, err := w.Write([]byte(errstatus.Message())); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+
+		return
+	}
+
+	ctx = runtime.ContextWithHeaders(ctx, r.Header)
+
+	var protoReq EchoRequest
+
+	defer r.Body.Close()
+
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		if _, err := w.Write([]byte(err.Error())); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+
+		return
+	}
+
+	if len(data) != 0 {
+		fm, err := runtime.GetFieldMaskJS(data)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			if _, err := w.Write([]byte(err.Error())); err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+			}
+
+			return
+		}
+
+		ctx = runtime.ContextWithFieldMask(ctx, fm)
+		err = runtime.ProtoUnmarshal(data, &protoReq)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			if _, err := w.Write([]byte(err.Error())); err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+			}
+
+			return
+		}
+	}
+
+	msg, err := server.Blackhole(ctx, &protoReq)
+	if err != nil {
+		errstatus := runtime.GetHTTPStatusFromError(err)
+
+		w.WriteHeader(errstatus.Code())
+		if _, err := w.Write([]byte(errstatus.Message())); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+
+		return
+	}
+
+	raw, err := runtime.ProtoMarshal(msg)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		if _, err := w.Write([]byte(err.Error())); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+
+		return
+	}
+
+	w.WriteHeader(200)
+	if _, err := w.Write(raw); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	return
 
 }
 
@@ -531,8 +636,8 @@ func handlerExampleServiceWebServerDeleteMessage(server ExampleServiceWebServer,
 //	@Summary	LIST messages from the server.
 //	@Description
 //	@Param		page		query	int32	true	"Page number"
-//	@Param		per_page	query	int32	true	"Number of items per page"
 //	@Param		ids			query	[]int32	true	"List of message IDs"
+//	@Param		per_page	query	int32	true	"Number of items per page"
 //	@Produce	json
 //	@Success	200	{object}	api.ListMessagesResponse.Messages
 //	@Router		/api/v1/example/messages [GET]
@@ -556,6 +661,25 @@ func handlerExampleServiceWebServerListMessages(server ExampleServiceWebServer, 
 
 	var protoReq ListMessagesRequest
 
+	if l, ok := r.URL.Query()["page"]; ok {
+		for _, s := range l {
+			v, err := runtime.ParseInt32(s)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+
+				if _, err := w.Write([]byte(err.Error())); err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+				}
+
+				return
+			}
+
+			protoReq.Page = v
+
+			continue
+		}
+	}
+
 	if l, ok := r.URL.Query()["ids"]; ok {
 		if len(l) == 1 && strings.Contains(l[0], ",") {
 			l = strings.Split(l[0], ",")
@@ -574,25 +698,6 @@ func handlerExampleServiceWebServerListMessages(server ExampleServiceWebServer, 
 			}
 
 			protoReq.Ids = append(protoReq.Ids, v)
-		}
-	}
-
-	if l, ok := r.URL.Query()["page"]; ok {
-		for _, s := range l {
-			v, err := runtime.ParseInt32(s)
-			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-
-				if _, err := w.Write([]byte(err.Error())); err != nil {
-					w.WriteHeader(http.StatusInternalServerError)
-				}
-
-				return
-			}
-
-			protoReq.Page = v
-
-			continue
 		}
 	}
 

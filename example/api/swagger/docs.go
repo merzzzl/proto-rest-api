@@ -15,6 +15,38 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v1/blackhole": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "EchoService"
+                ],
+                "parameters": [
+                    {
+                        "description": "body of the request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.EchoRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/emptypb.Empty"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/example/messages": {
             "get": {
                 "security": [
@@ -38,13 +70,6 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "integer",
-                        "description": "Number of items per page",
-                        "name": "per_page",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
                         "type": "array",
                         "items": {
                             "type": "integer"
@@ -52,6 +77,13 @@ const docTemplate = `{
                         "collectionFormat": "csv",
                         "description": "List of message IDs",
                         "name": "ids",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of items per page",
+                        "name": "per_page",
                         "in": "query",
                         "required": true
                     }
@@ -238,6 +270,19 @@ const docTemplate = `{
                 }
             }
         },
+        "api.EchoRequest": {
+            "type": "object",
+            "properties": {
+                "channel": {
+                    "description": "Channel",
+                    "type": "string"
+                },
+                "message": {
+                    "description": "Message",
+                    "type": "string"
+                }
+            }
+        },
         "api.GetMessageResponse": {
             "type": "object",
             "properties": {
@@ -368,6 +413,9 @@ const docTemplate = `{
                 "Status_STATUS_DRAFT",
                 "Status_STATUS_PUBLISHED"
             ]
+        },
+        "emptypb.Empty": {
+            "type": "object"
         }
     },
     "securityDefinitions": {

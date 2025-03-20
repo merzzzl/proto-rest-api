@@ -2,6 +2,7 @@ package gen
 
 import (
 	"fmt"
+	"path"
 	"strings"
 	"time"
 
@@ -12,7 +13,7 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
-func swaggerAnnotation(g *protogen.GeneratedFile, file *protogen.File, service *protogen.Service, method *protogen.Method) error {
+func swaggerAnnotation(g *protogen.GeneratedFile, service *protogen.Service, method *protogen.Method) error {
 	serviceOptions, ok := service.Desc.Options().(*descriptorpb.ServiceOptions)
 	if !ok {
 		return fmt.Errorf("unknown service options in %s", service.GoName)
@@ -50,7 +51,7 @@ func swaggerAnnotation(g *protogen.GeneratedFile, file *protogen.File, service *
 			reqFileds = []string{}
 		}
 
-		body := method.Input.GoIdent.GoName
+		body := path.Base(strings.ReplaceAll(method.Input.GoIdent.GoImportPath.String(), "\"", "")) + "." + method.Input.GoIdent.GoName
 
 		if len(reqFileds) > 0 {
 			_, goFieldsPath, err := tools.FieldsPath(method.Input, reqFileds)
@@ -77,7 +78,7 @@ func swaggerAnnotation(g *protogen.GeneratedFile, file *protogen.File, service *
 			reqFileds = []string{}
 		}
 
-		body := method.Output.GoIdent.GoName
+		body := path.Base(strings.ReplaceAll(method.Output.GoIdent.GoImportPath.String(), "\"", "")) + "." + method.Output.GoIdent.GoName
 
 		if len(reqFileds) > 0 {
 			_, goFieldsPath, err := tools.FieldsPath(method.Output, reqFileds)
@@ -113,7 +114,7 @@ func swaggerAnnotation(g *protogen.GeneratedFile, file *protogen.File, service *
 	g.P("// @Tags ", service.GoName)
 
 	if serviceRule.GetAuth() != restapi.AuthType_AUTH_TYPE_NONE {
-		g.P("// @Security Auth"+service.GoName)
+		g.P("// @Security Auth" + service.GoName)
 	}
 
 	g.P("// @Summary ", tools.LineComment(method.Comments.Leading))
@@ -126,7 +127,7 @@ func swaggerAnnotation(g *protogen.GeneratedFile, file *protogen.File, service *
 		}
 
 		g.P("// @Accept json")
-		g.P("// @Param request body ", file.GoPackageName, ".", *reqBody, " true \"", comment, "\"")
+		g.P("// @Param request body ", *reqBody, " true \"", comment, "\"")
 	}
 
 	for param, field := range pathFields {
@@ -165,7 +166,7 @@ func swaggerAnnotation(g *protogen.GeneratedFile, file *protogen.File, service *
 
 	if rspBody != nil {
 		g.P("// @Produce json")
-		g.P("// @Success ", successCode, " {object} ", file.GoPackageName, ".", *rspBody)
+		g.P("// @Success ", successCode, " {object} ", *rspBody)
 	}
 
 	pathMethodSegs := strings.Split(strings.Split(restRule.GetPath(), "?")[0], "/")
@@ -218,7 +219,7 @@ func SwaggerFile(g *protogen.GeneratedFile, file *protogen.File) error {
 			continue
 		}
 
-		g.P("// @securityDefinitions.apikey Auth"+s.GoName)
+		g.P("// @securityDefinitions.apikey Auth" + s.GoName)
 		g.P("// @in header")
 		g.P("// @name Authorization")
 		g.P("// @description Bearer token")

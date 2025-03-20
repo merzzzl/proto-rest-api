@@ -7,6 +7,15 @@ definitions:
         description: Name
         type: string
     type: object
+  api.EchoRequest:
+    properties:
+      channel:
+        description: Channel
+        type: string
+      message:
+        description: Message
+        type: string
+    type: object
   api.GetMessageResponse:
     properties:
       message:
@@ -84,22 +93,39 @@ definitions:
     - Status_STATUS_UNSPECIFIED
     - Status_STATUS_DRAFT
     - Status_STATUS_PUBLISHED
+  emptypb.Empty:
+    type: object
 info:
   contact: {}
   title: Swagger API (api)
   version: "20250320"
 paths:
+  /api/v1/blackhole:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: body of the request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.EchoRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/emptypb.Empty'
+      tags:
+      - EchoService
   /api/v1/example/messages:
     get:
       parameters:
       - description: Page number
         in: query
         name: page
-        required: true
-        type: integer
-      - description: Number of items per page
-        in: query
-        name: per_page
         required: true
         type: integer
       - collectionFormat: csv
@@ -110,6 +136,11 @@ paths:
         name: ids
         required: true
         type: array
+      - description: Number of items per page
+        in: query
+        name: per_page
+        required: true
+        type: integer
       produces:
       - application/json
       responses:

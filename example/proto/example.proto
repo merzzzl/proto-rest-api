@@ -4,6 +4,7 @@ package api;
 
 import "restapi/annotations.proto";
 import "example/proto/messages.proto";
+import "google/protobuf/empty.proto";
 
 option go_package = "./api;api";
 
@@ -25,6 +26,15 @@ service EchoService {
     option (restapi.method) = {
       method : "GET"
       path : "/ticker/:count"
+      request : "*"
+      response : "*"
+    };
+  }
+
+  rpc Blackhole(EchoRequest) returns (google.protobuf.Empty) {
+    option (restapi.method) = {
+      method : "POST"
+      path : "/blackhole"
       request : "*"
       response : "*"
     };

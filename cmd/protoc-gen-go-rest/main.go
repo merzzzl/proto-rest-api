@@ -98,7 +98,7 @@ func generateFile(plug *protogen.Plugin, file *protogen.File) *protogen.Generate
 					return nil
 				}
 			} else {
-				if err := gen.UnaryHandler(g, file, service, method); err != nil {
+				if err := gen.UnaryHandler(g, service, method); err != nil {
 					plug.Error(err)
 
 					return nil

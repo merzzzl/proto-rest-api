@@ -14,6 +14,8 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"github.com/swaggo/http-swagger/v2"
+	_ "github.com/merzzzl/proto-rest-api/example/api/swagger"
 )
 
 func main() {
@@ -22,13 +24,7 @@ func main() {
 	pb.RegisterExampleServiceHandler(mux, NewExampleService())
 	pb.RegisterEchoServiceHandler(mux, NewEchoService())
 
-	if err := pb.RegisterSwaggerUIHandler(mux, "/swagger-ui/"); err != nil {
-		panic(err)
-	}
-
-	if err := pb.RegisterReDocUIHandler(mux, "/redoc-ui/"); err != nil {
-		panic(err)
-	}
+	mux.Handle("/swagger/", httpSwagger.Handler())
 
 	server := &http.Server{
 		Addr:         ":8080",

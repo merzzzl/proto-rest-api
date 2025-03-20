@@ -1,14 +1,12 @@
 .PHONY: build
-build: proto install-oapi install-rest proto-example
+build: proto install-rest proto-example
 
 test-runtime:
 	go test ./runtime/... -coverprofile=.coverage
 	go tool cover -func=.coverage
+
 example-run:
 	go run ./example/main.go
-
-install-oapi:
-	go install ./cmd/protoc-gen-go-oapi
 
 install-rest:
 	go install ./cmd/protoc-gen-go-rest
@@ -20,13 +18,14 @@ proto:
 		restapi/annotations.proto
 
 proto-example:
-	rm -f example/api/*
+	rm -rf example/api/*
 	protoc \
 		-I=. \
 		--go_out=example \
-		--go-oapi_out=example \
 		--go-rest_out=example \
 		example/proto/*.proto
+	swag fmt -d example/api/example_rest.pb.go
+	swag init --generalInfo example/api/example_rest.pb.go --output example/api/swagger
 
 lint:
 	go mod tidy

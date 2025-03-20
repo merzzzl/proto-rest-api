@@ -13,7 +13,17 @@ import (
 	grpc "google.golang.org/grpc"
 	io "io"
 	http "net/http"
+	strings "strings"
 )
+
+//	@title						Swagger API (api)
+//	@version					20250320
+//	@tag.name					EchoService
+//	@tag.name					ExampleService
+//	@securityDefinitions.apikey	AuthExampleService
+//	@in							header
+//	@name						Authorization
+//	@description				Bearer token
 
 // EchoServiceWebServer is the server API for EchoService service.
 // All implementations must embed UnimplementedEchoServiceWebServer for forward compatibility.
@@ -155,6 +165,10 @@ func RegisterEchoServiceHandler(mux runtime.ServeMuxer, server EchoServiceWebSer
 func RegisterExampleServiceHandler(mux runtime.ServeMuxer, server ExampleServiceWebServer, interceptors ...runtime.Interceptor) {
 	router := runtime.NewRouter()
 
+	router.Handle("PATCH", "/api/v1/example/messages/:message.id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
+		handlerExampleServiceWebServerPatchMessage(server, w, r, p, interceptors)
+	})
+
 	router.Handle("POST", "/api/v1/example/messages", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerExampleServiceWebServerPostMessage(server, w, r, p, interceptors)
 	})
@@ -173,10 +187,6 @@ func RegisterExampleServiceHandler(mux runtime.ServeMuxer, server ExampleService
 
 	router.Handle("PUT", "/api/v1/example/messages/:message.id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerExampleServiceWebServerPutMessage(server, w, r, p, interceptors)
-	})
-
-	router.Handle("PATCH", "/api/v1/example/messages/:message.id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
-		handlerExampleServiceWebServerPatchMessage(server, w, r, p, interceptors)
 	})
 
 	mux.Handle("/api/v1/example/", router)
@@ -287,6 +297,16 @@ func handlerEchoServiceWebServerTicker(server EchoServiceWebServer, w http.Respo
 
 }
 
+// PostMessage
+//	@Tags		ExampleService
+//	@Security	AuthExampleService
+//	@Summary	POST new message to the server.
+//	@Description
+//	@Accept		json
+//	@Param		request	body	api.PostMessageRequest	true	"body of the request"
+//	@Produce	json
+//	@Success	200	{object}	api.PostMessageResponse.Message
+//	@Router		/api/v1/example/messages [POST]
 func handlerExampleServiceWebServerPostMessage(server ExampleServiceWebServer, w http.ResponseWriter, r *http.Request, _ runtime.Params, il []runtime.Interceptor) {
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
@@ -373,6 +393,15 @@ func handlerExampleServiceWebServerPostMessage(server ExampleServiceWebServer, w
 
 }
 
+// GetMessage
+//	@Tags		ExampleService
+//	@Security	AuthExampleService
+//	@Summary	GET message from the server.
+//	@Description
+//	@Param		id	path	int32	true	"Message ID"
+//	@Produce	json
+//	@Success	200	{object}	api.GetMessageResponse.Message
+//	@Router		/api/v1/example/messages/{id} [GET]
 func handlerExampleServiceWebServerGetMessage(server ExampleServiceWebServer, w http.ResponseWriter, r *http.Request, p runtime.Params, il []runtime.Interceptor) {
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
@@ -436,6 +465,13 @@ func handlerExampleServiceWebServerGetMessage(server ExampleServiceWebServer, w 
 
 }
 
+// DeleteMessage
+//	@Tags		ExampleService
+//	@Security	AuthExampleService
+//	@Summary	DELETE message from the server.
+//	@Description
+//	@Param	id	path	int32	true	"Message ID"
+//	@Router	/api/v1/example/messages/{id} [DELETE]
 func handlerExampleServiceWebServerDeleteMessage(server ExampleServiceWebServer, w http.ResponseWriter, r *http.Request, p runtime.Params, il []runtime.Interceptor) {
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
@@ -489,6 +525,17 @@ func handlerExampleServiceWebServerDeleteMessage(server ExampleServiceWebServer,
 
 }
 
+// ListMessages
+//	@Tags		ExampleService
+//	@Security	AuthExampleService
+//	@Summary	LIST messages from the server.
+//	@Description
+//	@Param		page		query	int32	true	"Page number"
+//	@Param		per_page	query	int32	true	"Number of items per page"
+//	@Param		ids			query	[]int32	true	"List of message IDs"
+//	@Produce	json
+//	@Success	200	{object}	api.ListMessagesResponse.Messages
+//	@Router		/api/v1/example/messages [GET]
 func handlerExampleServiceWebServerListMessages(server ExampleServiceWebServer, w http.ResponseWriter, r *http.Request, _ runtime.Params, il []runtime.Interceptor) {
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
@@ -508,6 +555,27 @@ func handlerExampleServiceWebServerListMessages(server ExampleServiceWebServer, 
 	ctx = runtime.ContextWithHeaders(ctx, r.Header)
 
 	var protoReq ListMessagesRequest
+
+	if l, ok := r.URL.Query()["ids"]; ok {
+		if len(l) == 1 && strings.Contains(l[0], ",") {
+			l = strings.Split(l[0], ",")
+		}
+
+		for _, s := range l {
+			v, err := runtime.ParseInt32(s)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+
+				if _, err := w.Write([]byte(err.Error())); err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+				}
+
+				return
+			}
+
+			protoReq.Ids = append(protoReq.Ids, v)
+		}
+	}
 
 	if l, ok := r.URL.Query()["page"]; ok {
 		for _, s := range l {
@@ -544,23 +612,6 @@ func handlerExampleServiceWebServerListMessages(server ExampleServiceWebServer, 
 			protoReq.PerPage = v
 
 			continue
-		}
-	}
-
-	if l, ok := r.URL.Query()["ids"]; ok {
-		for _, s := range l {
-			v, err := runtime.ParseInt32(s)
-			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-
-				if _, err := w.Write([]byte(err.Error())); err != nil {
-					w.WriteHeader(http.StatusInternalServerError)
-				}
-
-				return
-			}
-
-			protoReq.Ids = append(protoReq.Ids, v)
 		}
 	}
 
@@ -603,6 +654,15 @@ func (x *Message) MarshalJSON() ([]byte, error) {
 	return runtime.ProtoMarshal(x)
 }
 
+// PutMessage
+//	@Tags		ExampleService
+//	@Security	AuthExampleService
+//	@Summary	PUT message to the server.
+//	@Description
+//	@Accept	json
+//	@Param	request		body	api.PutMessageRequest.Message	true	"body of the request"
+//	@Param	message.id	path	int32							true	"Message ID"
+//	@Router	/api/v1/example/messages/{message.id} [PUT]
 func handlerExampleServiceWebServerPutMessage(server ExampleServiceWebServer, w http.ResponseWriter, r *http.Request, p runtime.Params, il []runtime.Interceptor) {
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
@@ -695,6 +755,15 @@ func handlerExampleServiceWebServerPutMessage(server ExampleServiceWebServer, w 
 
 }
 
+// PatchMessage
+//	@Tags		ExampleService
+//	@Security	AuthExampleService
+//	@Summary	PATCH message to the server.
+//	@Description
+//	@Accept	json
+//	@Param	request		body	api.PatchMessageRequest.Message	true	"body of the request"
+//	@Param	message.id	path	int32							true	"Message ID"
+//	@Router	/api/v1/example/messages/{message.id} [PATCH]
 func handlerExampleServiceWebServerPatchMessage(server ExampleServiceWebServer, w http.ResponseWriter, r *http.Request, p runtime.Params, il []runtime.Interceptor) {
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()

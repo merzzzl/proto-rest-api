@@ -44,6 +44,14 @@ func ReadQuery(g *protogen.GeneratedFile, method *protogen.Method, varName strin
 			}
 
 			g.P("if l", ", ok := r.URL.Query()[\"", param, "\"]; ok {")
+
+			if field.Desc.IsList() {
+				g.P("if len(l) == 1 && ", stringsPackage.Ident("Contains"), "(l[0], \",\")", " {")
+				g.P("l = ", stringsPackage.Ident("Split"), "(l[0], \",\")")
+				g.P("}")
+				g.P()
+			}
+
 			g.P("for _, s := range l", " {")
 			g.P("v, err := ", runtimePackage.Ident(parser), "(s)")
 			g.P("if err != nil {")

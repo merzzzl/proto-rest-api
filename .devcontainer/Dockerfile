@@ -14,6 +14,7 @@ RUN asdf plugin add golang && \
 RUN go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.57.2 && \
     go install mvdan.cc/gofumpt@v0.6.0 && \
     go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.35.2 && \
-    go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1
+    go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1 && \
+    go install github.com/swaggo/swag/cmd/swag@v1.16.4
 
 ENV PATH="$PATH:/root/.asdf/installs/golang/1.23.4/packages/bin"

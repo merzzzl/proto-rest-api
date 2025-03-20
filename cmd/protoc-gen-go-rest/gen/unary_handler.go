@@ -10,7 +10,7 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
-func UnaryHandler(g *protogen.GeneratedFile, service *protogen.Service, method *protogen.Method) error {
+func UnaryHandler(g *protogen.GeneratedFile, file *protogen.File, service *protogen.Service, method *protogen.Method) error {
 	genQueue := make(map[string]func(), 0)
 
 	methodOptions, ok := method.Desc.Options().(*descriptorpb.MethodOptions)
@@ -23,6 +23,10 @@ func UnaryHandler(g *protogen.GeneratedFile, service *protogen.Service, method *
 	restRule, ok := extVal.(*restapi.MethodRule)
 	if !ok {
 		return fmt.Errorf("unknown http options in %s", method.GoName)
+	}
+
+	if err := swaggerAnnotation(g, file, service, method); err != nil {
+		return err
 	}
 
 	if strings.Contains(restRule.GetPath(), "/:") {

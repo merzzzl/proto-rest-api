@@ -64,6 +64,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "description": "Number of items per page",
+                        "name": "per_page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
                         "description": "Page number",
                         "name": "page",
                         "in": "query",
@@ -77,13 +84,6 @@ const docTemplate = `{
                         "collectionFormat": "csv",
                         "description": "List of message IDs",
                         "name": "ids",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Number of items per page",
-                        "name": "per_page",
                         "in": "query",
                         "required": true
                     }

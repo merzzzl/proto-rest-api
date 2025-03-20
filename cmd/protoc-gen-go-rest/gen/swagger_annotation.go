@@ -13,7 +13,7 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
-func swaggerAnnotation(g *protogen.GeneratedFile, service *protogen.Service, method *protogen.Method) error {
+func swaggerAnnotation(g *protogen.GeneratedFile, file *protogen.File, service *protogen.Service, method *protogen.Method) error {
 	serviceOptions, ok := service.Desc.Options().(*descriptorpb.ServiceOptions)
 	if !ok {
 		return fmt.Errorf("unknown service options in %s", service.GoName)
@@ -51,7 +51,11 @@ func swaggerAnnotation(g *protogen.GeneratedFile, service *protogen.Service, met
 			reqFileds = []string{}
 		}
 
-		body := path.Base(strings.ReplaceAll(method.Input.GoIdent.GoImportPath.String(), "\"", "")) + "." + method.Input.GoIdent.GoName
+		body := g.QualifiedGoIdent(method.Input.GoIdent)
+
+		if method.Input.GoIdent.GoImportPath == file.GoImportPath {
+			body = string(file.GoPackageName) + "." + path.Base(body)
+		}
 
 		if len(reqFileds) > 0 {
 			_, goFieldsPath, err := tools.FieldsPath(method.Input, reqFileds)
@@ -78,7 +82,11 @@ func swaggerAnnotation(g *protogen.GeneratedFile, service *protogen.Service, met
 			reqFileds = []string{}
 		}
 
-		body := path.Base(strings.ReplaceAll(method.Output.GoIdent.GoImportPath.String(), "\"", "")) + "." + method.Output.GoIdent.GoName
+		body := g.QualifiedGoIdent(method.Output.GoIdent)
+
+		if method.Output.GoIdent.GoImportPath == file.GoImportPath {
+			body = string(file.GoPackageName) + "." + path.Base(body)
+		}
 
 		if len(reqFileds) > 0 {
 			_, goFieldsPath, err := tools.FieldsPath(method.Output, reqFileds)

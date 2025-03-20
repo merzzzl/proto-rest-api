@@ -123,6 +123,11 @@ paths:
   /api/v1/example/messages:
     get:
       parameters:
+      - description: Number of items per page
+        in: query
+        name: per_page
+        required: true
+        type: integer
       - description: Page number
         in: query
         name: page
@@ -136,11 +141,6 @@ paths:
         name: ids
         required: true
         type: array
-      - description: Number of items per page
-        in: query
-        name: per_page
-        required: true
-        type: integer
       produces:
       - application/json
       responses:

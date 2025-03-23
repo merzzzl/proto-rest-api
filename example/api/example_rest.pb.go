@@ -144,8 +144,10 @@ func (UnimplementedExampleServiceWebServer) PatchMessage(context.Context, *Patch
 func (UnimplementedExampleServiceWebServer) mustEmbedUnimplementedExampleServiceWebServer() {}
 
 // RegisterEchoServiceHandler registers the http handlers for service EchoService to "mux".
-func RegisterEchoServiceHandler(mux runtime.ServeMuxer, server EchoServiceWebServer, interceptors ...runtime.Interceptor) {
-	router := runtime.NewRouter()
+func RegisterEchoServiceHandler(router *runtime.Router, server EchoServiceWebServer, interceptors ...runtime.Interceptor) {
+	if router == nil {
+		return
+	}
 
 	router.Handle("GET", "/api/v1/echo/:channel", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerEchoServiceWebServerEcho(server, w, r, p, interceptors)
@@ -158,13 +160,21 @@ func RegisterEchoServiceHandler(mux runtime.ServeMuxer, server EchoServiceWebSer
 	router.Handle("POST", "/api/v1/blackhole/:channel", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerEchoServiceWebServerBlackhole(server, w, r, p, interceptors)
 	})
-
-	mux.Handle("/api/v1/", router)
 }
 
 // RegisterExampleServiceHandler registers the http handlers for service ExampleService to "mux".
-func RegisterExampleServiceHandler(mux runtime.ServeMuxer, server ExampleServiceWebServer, interceptors ...runtime.Interceptor) {
-	router := runtime.NewRouter()
+func RegisterExampleServiceHandler(router *runtime.Router, server ExampleServiceWebServer, interceptors ...runtime.Interceptor) {
+	if router == nil {
+		return
+	}
+
+	router.Handle("GET", "/api/v1/example/messages", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
+		handlerExampleServiceWebServerListMessages(server, w, r, p, interceptors)
+	})
+
+	router.Handle("PUT", "/api/v1/example/messages/:message.id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
+		handlerExampleServiceWebServerPutMessage(server, w, r, p, interceptors)
+	})
 
 	router.Handle("PATCH", "/api/v1/example/messages/:message.id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerExampleServiceWebServerPatchMessage(server, w, r, p, interceptors)
@@ -181,16 +191,6 @@ func RegisterExampleServiceHandler(mux runtime.ServeMuxer, server ExampleService
 	router.Handle("DELETE", "/api/v1/example/messages/:id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerExampleServiceWebServerDeleteMessage(server, w, r, p, interceptors)
 	})
-
-	router.Handle("GET", "/api/v1/example/messages", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
-		handlerExampleServiceWebServerListMessages(server, w, r, p, interceptors)
-	})
-
-	router.Handle("PUT", "/api/v1/example/messages/:message.id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
-		handlerExampleServiceWebServerPutMessage(server, w, r, p, interceptors)
-	})
-
-	mux.Handle("/api/v1/example/", router)
 }
 
 func handlerEchoServiceWebServerEcho(server EchoServiceWebServer, w http.ResponseWriter, r *http.Request, p runtime.Params, il []runtime.Interceptor) {
@@ -607,25 +607,6 @@ func handlerExampleServiceWebServerListMessages(server ExampleServiceWebServer, 
 
 	var protoReq ListMessagesRequest
 
-	if l, ok := r.URL.Query()["page"]; ok {
-		for _, s := range l {
-			v, err := runtime.ParseInt32(s)
-			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-
-				if _, err := w.Write([]byte(err.Error())); err != nil {
-					w.WriteHeader(http.StatusInternalServerError)
-				}
-
-				return
-			}
-
-			protoReq.Page = v
-
-			continue
-		}
-	}
-
 	if l, ok := r.URL.Query()["per_page"]; ok {
 		for _, s := range l {
 			v, err := runtime.ParseInt32(s)
@@ -663,6 +644,25 @@ func handlerExampleServiceWebServerListMessages(server ExampleServiceWebServer, 
 			}
 
 			protoReq.Ids = append(protoReq.Ids, v)
+		}
+	}
+
+	if l, ok := r.URL.Query()["page"]; ok {
+		for _, s := range l {
+			v, err := runtime.ParseInt32(s)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+
+				if _, err := w.Write([]byte(err.Error())); err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+				}
+
+				return
+			}
+
+			protoReq.Page = v
+
+			continue
 		}
 	}
 

@@ -18,7 +18,7 @@ func TestServeHTTP_0(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	mux := httptest.NewServer(router)
+	mux := httptest.NewServer(router.Mux())
 	defer mux.Close()
 
 	req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, mux.URL+"/", http.NoBody)

@@ -19,10 +19,12 @@ import (
 )
 
 func main() {
-	mux := http.NewServeMux()
+	router := runtime.NewRouter()
 
-	pb.RegisterExampleServiceHandler(mux, NewExampleService())
-	pb.RegisterEchoServiceHandler(mux, NewEchoService())
+	pb.RegisterExampleServiceHandler(router, NewExampleService())
+	pb.RegisterEchoServiceHandler(router, NewEchoService())
+
+	mux := router.Mux()
 
 	mux.Handle("/swagger/", swagger.Handler(api.GetExampleSwagger()))
 

@@ -7,12 +7,6 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-type Pattern []string
-
-type ServeMuxer interface {
-	Handle(pattern string, handler http.Handler)
-}
-
 type Router struct {
 	Router *httprouter.Router
 }
@@ -35,8 +29,12 @@ func (router *Router) Handle(method, path string, handler HandlerFunc) {
 	})
 }
 
-func (router *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	router.Router.ServeHTTP(w, r)
+func (router *Router) Mux() *http.ServeMux {
+	mux := http.NewServeMux()
+
+	mux.Handle("/", router.Router)
+
+	return mux
 }
 
 type Interceptor func(ctx context.Context, req *http.Request) (context.Context, error)

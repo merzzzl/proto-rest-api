@@ -14,9 +14,11 @@ import (
 
 func RegisterHandler(g *protogen.GeneratedFile, service *protogen.Service) error {
 	g.P("// Register", service.GoName, "Handler registers the http handlers for service ", service.GoName, " to \"mux\".")
-	g.P("func Register", service.GoName, "Handler(mux ", runtimePackage.Ident("ServeMuxer"), ", server ", service.GoName, "WebServer, interceptors ...", runtimePackage.Ident("Interceptor"), ") {")
-	g.P("router := ", runtimePackage.Ident("NewRouter"), "()")
-	g.P()
+	g.P("func Register", service.GoName, "Handler(router *", runtimePackage.Ident("Router"), ", server ", service.GoName, "WebServer, interceptors ...", runtimePackage.Ident("Interceptor"), ") {")
+
+	g.P("if router == nil {")
+	g.P("return")
+	g.P("}")
 
 	serviceOptions, ok := service.Desc.Options().(*descriptorpb.ServiceOptions)
 	if !ok {
@@ -48,6 +50,8 @@ func RegisterHandler(g *protogen.GeneratedFile, service *protogen.Service) error
 	}
 
 	for method, restRule := range paths {
+		g.P()
+
 		subPath := restRule.GetPath()
 
 		if sep := strings.LastIndex(subPath, "?"); sep != -1 {
@@ -71,10 +75,8 @@ func RegisterHandler(g *protogen.GeneratedFile, service *protogen.Service) error
 		g.P("router.Handle(\"", strings.ToUpper(restRule.GetMethod()), "\", \"", basePath+subPath, "\", func(w ", httpPackage.Ident("ResponseWriter"), ", r *", httpPackage.Ident("Request"), ", p ", runtimePackage.Ident("Params"), ") {")
 		g.P("handler", service.GoName, "WebServer", method.GoName, "(server, w, r, p, interceptors)")
 		g.P("})")
-		g.P()
 	}
 
-	g.P("mux.Handle(\"", basePath, "/\", router)")
 	g.P("}")
 
 	return nil

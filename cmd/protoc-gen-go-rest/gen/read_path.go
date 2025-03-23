@@ -17,6 +17,10 @@ func ReadPath(g *protogen.GeneratedFile, method *protogen.Method, varName string
 	for param, field := range fields {
 		fullGoName := tools.FieldFullNmae(method.Input, param)
 
+		if field.Desc.HasOptionalKeyword() {
+			return fmt.Errorf("optional fields are not supported in path")
+		}
+
 		switch field.Desc.Kind() {
 		case protoreflect.StringKind:
 			g.P(varName, ".", fullGoName, " = p.ByName(\"", param, "\")")

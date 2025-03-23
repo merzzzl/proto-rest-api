@@ -79,7 +79,7 @@ service ExampleService {
   rpc ListMessages(ListMessagesRequest) returns (ListMessagesResponse) {
     option (restapi.method) = {
       method : "GET"
-      path : "/messages?:page&:per_page&:ids"
+      path : "/messages?:page&:per_page&:ids&:author_name&:statuses"
       response : ".messages"
     };
   }

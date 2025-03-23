@@ -88,8 +88,10 @@ message DeleteMessageResponse {}
 
 message ListMessagesRequest {
   repeated int32 ids = 1; // List of message IDs
-  int32 page = 2;         // Page number
-  int32 per_page = 3;     // Number of items per page
+  optional int32 page = 2;         // Page number
+  optional int32 per_page = 3;      // Number of items per page
+  optional string author_name = 4;       // Filter by author name
+  repeated Status statuses = 5;          // Filter by status
 }
 
 message ListMessagesResponse {

@@ -19,18 +19,27 @@ func ReadQuery(g *protogen.GeneratedFile, method *protogen.Method, varName strin
 
 		switch field.Desc.Kind() {
 		case protoreflect.StringKind:
-			g.P(varName, ".", fullGoName, " = r.URL.Query().Get(\"", param, "\")")
+			if field.Desc.HasOptionalKeyword() {
+				g.P("if s := r.URL.Query().Get(\"", param, "\"); s != \"\" {")
+				g.P(varName, ".", fullGoName, " = &s")
+				g.P("}")
+			} else {
+				g.P(varName, ".", fullGoName, " = r.URL.Query().Get(\"", param, "\")")
+			}
 		case protoreflect.EnumKind:
-			g.P(varName, ".", fullGoName, " = ", field.Enum.GoIdent, "(r.URL.Query().Get(\"", param, "\"))")
-
 			g.P("if l", ", ok := r.URL.Query()[\"", param, "\"]; ok {")
 			g.P("for _, s := range l", " {")
-			g.P()
 
 			if field.Desc.IsList() {
-				g.P(varName, ".", fullGoName, " = append(", varName, ".", fullGoName, ", ", field.Enum.GoIdent, "(", field.Enum.GoIdent, "_value[s])")
+				g.P(varName, ".", fullGoName, " = append(", varName, ".", fullGoName, ", ", field.Enum.GoIdent, "(", field.Enum.GoIdent, "_value[s]))")
 			} else {
-				g.P(varName, ".", fullGoName, " = ", field.Enum.GoIdent, "(", field.Enum.GoIdent, "_value[s])")
+				if field.Desc.HasOptionalKeyword() {
+					g.P("if v, ok := ", field.Enum.GoIdent, "_value[s]; ok {")
+					g.P(varName, ".", fullGoName, " = ", field.Enum.GoIdent, "(v).Enum()")
+					g.P("}")
+				} else {
+					g.P(varName, ".", fullGoName, " = ", field.Enum.GoIdent, "(", field.Enum.GoIdent, "_value[s])")
+				}
 				g.P()
 				g.P("continue")
 			}

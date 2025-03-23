@@ -68,7 +68,11 @@ func ReadQuery(g *protogen.GeneratedFile, method *protogen.Method, varName strin
 			if field.Desc.IsList() {
 				g.P(varName, ".", fullGoName, " = append(", varName, ".", fullGoName, ", v)")
 			} else {
-				g.P(varName, ".", fullGoName, " = v")
+				if field.Desc.HasOptionalKeyword() {
+					g.P(varName, ".", fullGoName, " = &v")
+				} else {
+					g.P(varName, ".", fullGoName, " = v")
+				}
 				g.P()
 				g.P("continue")
 			}

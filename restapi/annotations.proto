@@ -43,4 +43,5 @@ message ServiceRule {
   // The base path for all HTTP bindings in this service.
   string base_path = 1;
   AuthType auth = 2;
+  string auth_scope = 3;
 }

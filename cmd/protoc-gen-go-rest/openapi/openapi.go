@@ -58,7 +58,13 @@ func NewSwagger(file *protogen.File) error {
 			swagger.Components.SecuritySchemes = make(openapi3.SecuritySchemes)
 		}
 
-		swagger.Components.SecuritySchemes[s.GoName+"Auth"] = &openapi3.SecuritySchemeRef{
+		nameSecurity := s.GoName + "Auth"
+
+		if serviceRule.GetAuthScope() != "" {
+			nameSecurity = serviceRule.GetAuthScope()
+		}
+
+		swagger.Components.SecuritySchemes[nameSecurity] = &openapi3.SecuritySchemeRef{
 			Value: &openapi3.SecurityScheme{
 				Type:         "http",
 				Scheme:       "bearer",
@@ -89,6 +95,10 @@ func AddMethod(g *protogen.GeneratedFile, service *protogen.Service, method *pro
 
 	if err := ResponseRef(g, service, method); err != nil {
 		return fmt.Errorf("failed to add response for %s: %w", method.GoName, err)
+	}
+
+	if err := SecurityRequirements(g, service, method); err != nil {
+		return fmt.Errorf("failed to add security requirements for %s: %w", method.GoName, err)
 	}
 
 	return nil

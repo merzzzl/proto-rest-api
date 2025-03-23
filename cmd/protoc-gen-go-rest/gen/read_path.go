@@ -37,7 +37,11 @@ func ReadPath(g *protogen.GeneratedFile, method *protogen.Method, varName string
 			g.P()
 			g.P("return")
 			g.P("} else {")
-			g.P(varName, ".", fullGoName, " = v")
+			if field.Desc.HasOptionalKeyword() {
+				g.P(varName, ".", fullGoName, " = &v")
+			} else {
+				g.P(varName, ".", fullGoName, " = v")
+			}
 			g.P("}")
 		default:
 			return fmt.Errorf("unsupported type %s", field.Desc.Kind())

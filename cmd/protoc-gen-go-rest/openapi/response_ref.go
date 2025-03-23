@@ -47,6 +47,7 @@ func ResponseRef(g *protogen.GeneratedFile, service *protogen.Service, method *p
 
 		cName = g.QualifiedGoIdent(method.Output.GoIdent)
 		workingMessage := method.Output
+		isListMessage := false
 
 		if len(reqFields) > 0 {
 			field, goFieldsPath, err := tools.FieldsPath(method.Output, reqFields)
@@ -56,9 +57,13 @@ func ResponseRef(g *protogen.GeneratedFile, service *protogen.Service, method *p
 
 			cName += "." + strings.Join(goFieldsPath, ".")
 			workingMessage = field.Message
+
+			if field.Desc.IsList() {
+				isListMessage = true
+			}
 		}
 
-		schema := Scheme(workingMessage, false, []string{})
+		schema := Scheme(workingMessage, isListMessage, []string{})
 
 		if swagger.Components.Schemas == nil {
 			swagger.Components.Schemas = make(openapi3.Schemas)

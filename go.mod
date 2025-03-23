@@ -1,8 +1,6 @@
 module github.com/merzzzl/proto-rest-api
 
-go 1.22.5
-
-toolchain go1.23.4
+go 1.23
 
 require (
 	github.com/getkin/kin-openapi v0.131.0

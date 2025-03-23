@@ -40,6 +40,7 @@ func RequestBodyRef(g *protogen.GeneratedFile, service *protogen.Service, method
 
 	cName := g.QualifiedGoIdent(method.Input.GoIdent)
 	workingMessage := method.Input
+	isListMessage := false
 
 	if len(reqFields) > 0 {
 		field, goFieldsPath, err := tools.FieldsPath(method.Input, reqFields)
@@ -49,9 +50,13 @@ func RequestBodyRef(g *protogen.GeneratedFile, service *protogen.Service, method
 
 		cName += "." + strings.Join(goFieldsPath, ".")
 		workingMessage = field.Message
+
+		if field.Desc.IsList() {
+			isListMessage = true
+		}
 	}
 
-	schema := Scheme(workingMessage, false, usedFileds)
+	schema := Scheme(workingMessage, isListMessage, usedFileds)
 
 	if swagger.Components.Schemas == nil {
 		swagger.Components.Schemas = make(openapi3.Schemas)

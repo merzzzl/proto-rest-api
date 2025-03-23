@@ -10,11 +10,6 @@ import (
 func Scheme(msg *protogen.Message, isList bool, exclude []string) *openapi3.Schema {
 	schema := openapi3.NewObjectSchema()
 
-	if isList {
-		schema = openapi3.NewArraySchema()
-		schema.Items = openapi3.NewSchemaRef("", openapi3.NewObjectSchema())
-	}
-
 	schema.Description = tools.LineComments(msg.Comments)
 	requireFields := make([]string, 0)
 
@@ -42,12 +37,17 @@ func Scheme(msg *protogen.Message, isList bool, exclude []string) *openapi3.Sche
 
 	schema.Required = requireFields
 
+	if isList {
+		arraySchema := openapi3.NewArraySchema()
+		arraySchema.Items = openapi3.NewSchemaRef("", schema)
+		schema = arraySchema
+	}
+
 	return schema
 }
 
 func Field(field *protogen.Field, exclude []string) *openapi3.Schema {
 	fieldSchema := openapi3.NewObjectSchema()
-	fieldSchema.Description = tools.LineComments(field.Comments)
 
 	switch field.Desc.Kind() {
 	case protoreflect.BoolKind:
@@ -61,8 +61,7 @@ func Field(field *protogen.Field, exclude []string) *openapi3.Schema {
 	case protoreflect.BytesKind:
 		fieldSchema = openapi3.NewBytesSchema()
 	case protoreflect.MessageKind:
-		nestedSchema := Scheme(field.Message, field.Desc.IsList(), exclude)
-		fieldSchema = nestedSchema
+		fieldSchema = Scheme(field.Message, false, exclude)
 	case protoreflect.EnumKind:
 		fieldSchema = openapi3.NewStringSchema()
 
@@ -73,7 +72,7 @@ func Field(field *protogen.Field, exclude []string) *openapi3.Schema {
 
 	fieldSchema.Description = tools.LineComments(field.Comments)
 
-	if field.Desc.IsList() && field.Desc.Kind() != protoreflect.MessageKind {
+	if field.Desc.IsList() {
 		arraySchema := openapi3.NewArraySchema()
 		arraySchema.Items = openapi3.NewSchemaRef("", fieldSchema)
 		fieldSchema = arraySchema

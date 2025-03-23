@@ -12,18 +12,17 @@ import (
 
 // Config stores httpSwagger configuration variables.
 type Config struct {
-	// The url pointing to API definition (normally swagger.json or swagger.yaml). Default is `doc.json`.
+	UIConfig                 map[template.JS]template.JS
 	URL                      string
 	DocExpansion             string
 	DomID                    string
 	BeforeScript             template.JS
 	AfterScript              template.JS
+	Layout                   SwaggerLayout
 	Plugins                  []template.JS
-	UIConfig                 map[template.JS]template.JS
+	DefaultModelsExpandDepth ModelsExpandDepthType
 	DeepLinking              bool
 	PersistAuthorization     bool
-	Layout                   SwaggerLayout
-	DefaultModelsExpandDepth ModelsExpandDepthType
 }
 
 // URL presents the url pointing to API definition (normally swagger.json or swagger.yaml).
@@ -69,6 +68,7 @@ func Plugins(plugins []string) func(*Config) {
 		for i, v := range plugins {
 			vs[i] = template.JS(v)
 		}
+
 		c.Plugins = vs
 	}
 }
@@ -80,6 +80,7 @@ func UIConfig(props map[string]string) func(*Config) {
 		for k, v := range props {
 			vs[template.JS(k)] = template.JS(v)
 		}
+
 		c.UIConfig = vs
 	}
 }
@@ -106,7 +107,7 @@ const (
 	StandaloneLayout SwaggerLayout = "StandaloneLayout"
 )
 
-// Define Layout options are BaseLayout or StandaloneLayout
+// Define Layout options are BaseLayout or StandaloneLayout.
 func Layout(layout SwaggerLayout) func(*Config) {
 	return func(c *Config) {
 		c.Layout = layout
@@ -120,8 +121,7 @@ const (
 	HideModel ModelsExpandDepthType = -1
 )
 
-// DefaultModelsExpandDepth presents the model of response and request.
-// set the default expansion depth for models
+// set the default expansion depth for models.
 func DefaultModelsExpandDepth(defaultModelsExpandDepth ModelsExpandDepthType) func(*Config) {
 	return func(c *Config) {
 		c.DefaultModelsExpandDepth = defaultModelsExpandDepth
@@ -148,7 +148,6 @@ func newConfig(configFns ...func(*Config)) *Config {
 
 // Handler wraps `http.Handler` into `http.HandlerFunc`.
 func Handler(sf []byte, configFns ...func(*Config)) http.HandlerFunc {
-
 	config := newConfig(configFns...)
 
 	// create a template with name
@@ -190,12 +189,14 @@ func Handler(sf []byte, configFns ...func(*Config)) http.HandlerFunc {
 			http.Redirect(w, r, matches[1]+"/"+"index.html", http.StatusMovedPermanently)
 		default:
 			var err error
+
 			r.URL, err = url.Parse(matches[2])
 			if err != nil {
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 
 				return
 			}
+
 			http.FileServer(http.FS(swaggerFiles.FS)).ServeHTTP(w, r)
 		}
 	}

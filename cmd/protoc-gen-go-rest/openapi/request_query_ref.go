@@ -22,12 +22,12 @@ func RequestQueryRef(g *protogen.GeneratedFile, service *protogen.Service, metho
 
 	restRule, ok := extVal.(*restapi.MethodRule)
 	if !ok {
-		return nil,fmt.Errorf("unknown http options in %s", method.GoName)
+		return nil, fmt.Errorf("unknown http options in %s", method.GoName)
 	}
 
 	fields, err := tools.QueryFields(method)
 	if err != nil {
-		return nil,fmt.Errorf("failed to get request fields for %s: %w", method.GoName, err)
+		return nil, fmt.Errorf("failed to get request fields for %s: %w", method.GoName, err)
 	}
 
 	if len(fields) == 0 {

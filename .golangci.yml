@@ -4,37 +4,25 @@ linters:
     - depguard
     - dupl
     - lll
-    - gomnd
-    - exhaustivestruct
     - varnamelen
     - exhaustruct
     - cyclop
     - funlen
     - tagliatelle
     - gochecknoglobals
-    - gochecknoinits
     - wrapcheck
     - gocognit
     - gocyclo
     - maintidx
     - nonamedreturns
-    - scopelint
-    - interfacer
-    - nosnakecase
-    - structcheck
-    - ifshort
-    - golint
-    - deadcode
-    - varcheck
-    - maligned
     - nestif
     - goconst
     - bodyclose
     - forbidigo
     - zerologlint
     - ireturn
-    - execinquery
     - exhaustive
+    - exportloopref
 linters-settings:
   gosec:
     confidence: high
@@ -51,6 +39,7 @@ linters-settings:
     enable-all: true
     disable:
       - shadow
+      - fieldalignment
   gofmt:
     rewrite-rules:
       - pattern: "interface{}"
@@ -108,7 +97,7 @@ linters-settings:
         yaml: goCamel
 run:
   allow-parallel-runners: true
-  go: "1.22"
+  go: "1.23"
 output:
   sort-results: true
 issues:

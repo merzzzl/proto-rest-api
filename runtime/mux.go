@@ -43,7 +43,7 @@ func ApplyInterceptors(ctx context.Context, req *http.Request, interceptors ...I
 	for _, interceptor := range interceptors {
 		var err error
 
-		ctx, err := interceptor(ctx, req)
+		ctx, err = interceptor(ctx, req)
 		if err != nil {
 			return ctx, err
 		}

@@ -38,7 +38,11 @@ func RequestQueryRef(g *protogen.GeneratedFile, service *protogen.Service, metho
 		swagger.Paths = openapi3.NewPaths()
 	}
 
-	path := FormatedPath(restRule.GetPath())
+	path, err := FormatedPath(service, method)
+	if err != nil {
+		return nil, fmt.Errorf("failed to format path for %s: %w", method.GoName, err)
+	}
+
 	httpMethod := strings.ToUpper(restRule.GetMethod())
 
 	used := make([]string, 0, len(fields))

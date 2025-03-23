@@ -100,7 +100,11 @@ func ResponseRef(g *protogen.GeneratedFile, service *protogen.Service, method *p
 		swagger.Paths = openapi3.NewPaths()
 	}
 
-	path := FormatedPath(restRule.GetPath())
+	path, err := FormatedPath(service, method)
+	if err != nil {
+		return fmt.Errorf("failed to format path for %s: %w", method.GoName, err)
+	}
+
 	httpMethod := strings.ToUpper(restRule.GetMethod())
 
 	if path != "" && httpMethod != "" {

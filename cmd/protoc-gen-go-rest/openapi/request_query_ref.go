@@ -68,7 +68,7 @@ func RequestQueryRef(g *protogen.GeneratedFile, service *protogen.Service, metho
 				Name:        name,
 				In:          "query",
 				Description: tools.LineComments(field.Comments),
-				Required:    !field.Desc.HasOptionalKeyword(),
+				Required:    !field.Desc.HasOptionalKeyword() && !field.Desc.IsList(),
 				Schema: &openapi3.SchemaRef{
 					Value: schema,
 				},

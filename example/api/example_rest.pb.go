@@ -168,18 +168,6 @@ func RegisterExampleServiceHandler(router *runtime.Router, server ExampleService
 		return
 	}
 
-	router.Handle("GET", "/api/v1/example/messages", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
-		handlerExampleServiceWebServerListMessages(server, w, r, p, interceptors)
-	})
-
-	router.Handle("PUT", "/api/v1/example/messages/:message.id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
-		handlerExampleServiceWebServerPutMessage(server, w, r, p, interceptors)
-	})
-
-	router.Handle("PATCH", "/api/v1/example/messages/:message.id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
-		handlerExampleServiceWebServerPatchMessage(server, w, r, p, interceptors)
-	})
-
 	router.Handle("POST", "/api/v1/example/messages", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerExampleServiceWebServerPostMessage(server, w, r, p, interceptors)
 	})
@@ -190,6 +178,18 @@ func RegisterExampleServiceHandler(router *runtime.Router, server ExampleService
 
 	router.Handle("DELETE", "/api/v1/example/messages/:id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerExampleServiceWebServerDeleteMessage(server, w, r, p, interceptors)
+	})
+
+	router.Handle("GET", "/api/v1/example/messages", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
+		handlerExampleServiceWebServerListMessages(server, w, r, p, interceptors)
+	})
+
+	router.Handle("PUT", "/api/v1/example/messages/:message.id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
+		handlerExampleServiceWebServerPutMessage(server, w, r, p, interceptors)
+	})
+
+	router.Handle("PATCH", "/api/v1/example/messages/:message.id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
+		handlerExampleServiceWebServerPatchMessage(server, w, r, p, interceptors)
 	})
 }
 

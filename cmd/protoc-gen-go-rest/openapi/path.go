@@ -39,6 +39,8 @@ func FormatedPath(service *protogen.Service, method *protogen.Method) (string, e
 	basePath = strings.TrimSuffix(basePath, "/")
 
 	path := strings.Split(restRule.GetPath(), "?")[0]
+	path = strings.TrimPrefix(path, "/")
+	path = strings.TrimSuffix(path, "/")
 	segs := strings.Split(path, "/")
 
 	for i, seg := range segs {

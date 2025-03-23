@@ -24,8 +24,6 @@ proto-example:
 		--go_out=example \
 		--go-rest_out=example \
 		example/proto/*.proto
-	swag fmt -d example/api/example_rest.pb.go
-	swag init --pd -d example/api -g example_rest.pb.go -o example/api/swagger
 
 lint:
 	go mod tidy

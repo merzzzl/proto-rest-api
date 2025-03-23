@@ -34,7 +34,7 @@ service EchoService {
   rpc Blackhole(EchoRequest) returns (google.protobuf.Empty) {
     option (restapi.method) = {
       method : "POST"
-      path : "/blackhole"
+      path : "/blackhole/:channel"
       request : "*"
       response : "*"
     };

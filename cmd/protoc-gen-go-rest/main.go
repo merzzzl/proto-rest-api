@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/merzzzl/proto-rest-api/cmd/protoc-gen-go-rest/gen"
+	"github.com/merzzzl/proto-rest-api/cmd/protoc-gen-go-rest/openapi"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/types/pluginpb"
 )
@@ -46,22 +47,17 @@ func main() {
 	})
 }
 
-func generateFile(plug *protogen.Plugin, file *protogen.File) *protogen.GeneratedFile {
-	filename := file.GeneratedFilenamePrefix + "_rest.pb.go"
-	g := plug.NewGeneratedFile(filename, file.GoImportPath)
+func generateFile(plug *protogen.Plugin, file *protogen.File) {
+	g := plug.NewGeneratedFile(file.GeneratedFilenamePrefix+"_rest.pb.go", file.GoImportPath)
 
 	if err := gen.FileHeader(plug, g, file, Version); err != nil {
 		plug.Error(err)
-
-		return nil
 	}
 
 	g.P()
 
-	if err := gen.SwaggerFile(g, file); err != nil {
+	if err := openapi.NewSwagger(file); err != nil {
 		plug.Error(err)
-
-		return nil
 	}
 
 	g.P()
@@ -72,8 +68,6 @@ func generateFile(plug *protogen.Plugin, file *protogen.File) *protogen.Generate
 
 		if err := gen.WebSocket(g, service); err != nil {
 			plug.Error(err)
-
-			return nil
 		}
 
 		g.P()
@@ -82,8 +76,6 @@ func generateFile(plug *protogen.Plugin, file *protogen.File) *protogen.Generate
 	for _, service := range file.Services {
 		if err := gen.RegisterHandler(g, service); err != nil {
 			plug.Error(err)
-
-			return nil
 		}
 
 		g.P()
@@ -94,14 +86,10 @@ func generateFile(plug *protogen.Plugin, file *protogen.File) *protogen.Generate
 			if method.Desc.IsStreamingServer() || method.Desc.IsStreamingClient() {
 				if err := gen.StreamHandler(g, service, method); err != nil {
 					plug.Error(err)
-
-					return nil
 				}
 			} else {
 				if err := gen.UnaryHandler(g, file, service, method); err != nil {
 					plug.Error(err)
-
-					return nil
 				}
 			}
 
@@ -109,5 +97,22 @@ func generateFile(plug *protogen.Plugin, file *protogen.File) *protogen.Generate
 		}
 	}
 
-	return g
+	swaggerJSON := plug.NewGeneratedFile(file.GeneratedFilenamePrefix+"_swagger.json", file.GoImportPath)
+
+	jsonDoc, err := openapi.GetJSON()
+	if err != nil {
+		plug.Error(err)
+	}
+
+	if _, err := swaggerJSON.Write(jsonDoc); err != nil {
+		plug.Error(err)
+	}
+
+	swaggerDoc := plug.NewGeneratedFile(file.GeneratedFilenamePrefix+"_swagger.go", file.GoImportPath)
+
+	if err := gen.FileHeader(plug, swaggerDoc, file, Version); err != nil {
+		plug.Error(err)
+	}
+
+	openapi.GenDoc(swaggerDoc, file)
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/merzzzl/proto-rest-api/cmd/protoc-gen-go-rest/openapi"
 	"github.com/merzzzl/proto-rest-api/restapi"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
@@ -25,7 +26,7 @@ func UnaryHandler(g *protogen.GeneratedFile, file *protogen.File, service *proto
 		return fmt.Errorf("unknown http options in %s", method.GoName)
 	}
 
-	if err := swaggerAnnotation(g, file, service, method); err != nil {
+	if err := openapi.AddMethod(g, service, method); err != nil {
 		return err
 	}
 

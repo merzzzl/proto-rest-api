@@ -9,13 +9,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/merzzzl/proto-rest-api/example/api"
 	pb "github.com/merzzzl/proto-rest-api/example/api"
 	"github.com/merzzzl/proto-rest-api/runtime"
+	"github.com/merzzzl/proto-rest-api/swagger"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"github.com/swaggo/http-swagger/v2"
-	_ "github.com/merzzzl/proto-rest-api/example/api/swagger"
 )
 
 func main() {
@@ -24,7 +24,7 @@ func main() {
 	pb.RegisterExampleServiceHandler(mux, NewExampleService())
 	pb.RegisterEchoServiceHandler(mux, NewEchoService())
 
-	mux.Handle("/swagger/", httpSwagger.Handler())
+	mux.Handle("/swagger/", swagger.Handler(api.GetExampleSwagger()))
 
 	server := &http.Server{
 		Addr:         ":8080",

@@ -37,6 +37,7 @@ message Author {
     string email = 2; // Email address
     string phone = 3; // Phone number
   }
+  map<string, string> metadata = 4; // Metadata
 }
 
 message Message {
@@ -44,6 +45,7 @@ message Message {
   string message = 2; // Message
   Author author = 3;  // Author
   Status status = 4;  // Status
+  string sha1_hash = 5; // SHA1 hash
 }
 
 message PatchMessageRequest {

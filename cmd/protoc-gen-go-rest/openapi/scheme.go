@@ -26,10 +26,10 @@ func Scheme(msg *protogen.Message, isList bool, exclude []string) *openapi3.Sche
 			}
 
 			if !field.Desc.HasOptionalKeyword() && field.Oneof == nil {
-				requireFields = append(requireFields, string(field.Desc.Name()))
+				requireFields = append(requireFields, string(field.Desc.JSONName()))
 			}
 
-			schema.Properties[string(field.Desc.Name())] = openapi3.NewSchemaRef("", fieldSchema)
+			schema.Properties[string(field.Desc.JSONName())] = openapi3.NewSchemaRef("", fieldSchema)
 		} else if schema.Type.Is(openapi3.TypeArray) && schema.Items != nil {
 			schema.Items = openapi3.NewSchemaRef("", fieldSchema)
 		}

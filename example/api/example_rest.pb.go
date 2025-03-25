@@ -607,6 +607,35 @@ func handlerExampleServiceWebServerListMessages(server ExampleServiceWebServer, 
 
 	var protoReq ListMessagesRequest
 
+	if s := r.URL.Query().Get("author_name"); s != "" {
+		protoReq.AuthorName = &s
+	}
+
+	if l, ok := r.URL.Query()["statuses"]; ok {
+		for _, s := range l {
+			protoReq.Statuses = append(protoReq.Statuses, Status(Status_value[s]))
+		}
+	}
+
+	if l, ok := r.URL.Query()["page"]; ok {
+		for _, s := range l {
+			v, err := runtime.ParseInt32(s)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+
+				if _, err := w.Write([]byte(err.Error())); err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+				}
+
+				return
+			}
+
+			protoReq.Page = &v
+
+			continue
+		}
+	}
+
 	if l, ok := r.URL.Query()["per_page"]; ok {
 		for _, s := range l {
 			v, err := runtime.ParseInt32(s)
@@ -644,35 +673,6 @@ func handlerExampleServiceWebServerListMessages(server ExampleServiceWebServer, 
 			}
 
 			protoReq.Ids = append(protoReq.Ids, v)
-		}
-	}
-
-	if l, ok := r.URL.Query()["page"]; ok {
-		for _, s := range l {
-			v, err := runtime.ParseInt32(s)
-			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-
-				if _, err := w.Write([]byte(err.Error())); err != nil {
-					w.WriteHeader(http.StatusInternalServerError)
-				}
-
-				return
-			}
-
-			protoReq.Page = &v
-
-			continue
-		}
-	}
-
-	if s := r.URL.Query().Get("author_name"); s != "" {
-		protoReq.AuthorName = &s
-	}
-
-	if l, ok := r.URL.Query()["statuses"]; ok {
-		for _, s := range l {
-			protoReq.Statuses = append(protoReq.Statuses, Status(Status_value[s]))
 		}
 	}
 

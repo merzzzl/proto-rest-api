@@ -61,7 +61,14 @@ func Field(field *protogen.Field, exclude []string) *openapi3.Schema {
 	case protoreflect.BytesKind:
 		fieldSchema = openapi3.NewBytesSchema()
 	case protoreflect.MessageKind:
-		fieldSchema = Scheme(field.Message, false, exclude)
+		if field.Message.Desc.FullName() == "google.protobuf.Timestamp" {
+			fieldSchema = openapi3.NewStringSchema()
+			fieldSchema.Format = "date-time"
+		} else if field.Message.Desc.FullName() == "google.protobuf.Struct" {
+			fieldSchema = openapi3.NewObjectSchema()
+		} else {
+			fieldSchema = Scheme(field.Message, false, exclude)
+		}
 	case protoreflect.EnumKind:
 		fieldSchema = openapi3.NewStringSchema()
 

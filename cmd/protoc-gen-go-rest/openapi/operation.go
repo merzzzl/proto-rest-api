@@ -11,6 +11,7 @@ func Operation(service *protogen.Service, method *protogen.Method) *openapi3.Ope
 	operation.Tags = []string{service.GoName}
 	operation.Description = tools.LineComment(method.Comments.Trailing)
 	operation.Summary = tools.LineComment(method.Comments.Leading)
+	operation.OperationID = service.GoName + method.GoName
 
 	return operation
 }

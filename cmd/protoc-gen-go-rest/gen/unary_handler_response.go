@@ -38,7 +38,6 @@ func UnaryHandlerEmptyResponse(g *protogen.GeneratedFile, method *protogen.Metho
 
 func UnaryHandlerResponse(g *protogen.GeneratedFile, method *protogen.Method, restRule *restapi.MethodRule, genQueue map[string]func()) error {
 	g.P("msg, err := server.", method.GoName, "(ctx, &protoReq)")
-
 	g.P("if err != nil {")
 	g.P("errstatus := ", runtimePackage.Ident("GetHTTPStatusFromError"), "(err)")
 	g.P()

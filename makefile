@@ -15,7 +15,7 @@ proto:
 	protoc \
 		-I=restapi \
 		--go_out=paths=source_relative:restapi \
-		restapi/annotations.proto
+		restapi/*.proto
 
 proto-example:
 	rm -rf example/api/*

@@ -13,6 +13,8 @@ import (
 	pb "github.com/merzzzl/proto-rest-api/example/api"
 	"github.com/merzzzl/proto-rest-api/runtime"
 	"github.com/merzzzl/proto-rest-api/swagger"
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -149,7 +151,18 @@ func (s *ExampleService) GetMessage(_ context.Context, req *pb.GetMessageRequest
 
 	message, ok := s.storage[req.GetId()]
 	if !ok {
-		return nil, status.Errorf(http.StatusNotFound, "message not found")
+		st := status.New(codes.NotFound, "message not found")
+
+		stDet, err := st.WithDetails(&errdetails.ErrorInfo{
+			Reason:   "MESSAGE_NOT_FOUND",
+			Domain:   "example.com",
+			Metadata: map[string]string{"id": strconv.Itoa(int(req.GetId()))},
+		})
+		if err != nil {
+			return nil, st.Err()
+		}
+
+		return nil, stDet.Err()
 	}
 
 	return &pb.GetMessageResponse{

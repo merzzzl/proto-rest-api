@@ -1,9 +1,12 @@
 package runtime
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 )
 
 var grpcToHTTPStatus = map[int]int{
@@ -26,20 +29,74 @@ var grpcToHTTPStatus = map[int]int{
 	16: 401, // UNAUTHENTICATED
 }
 
+type ErrResponse struct {
+	Message string          `json:"message"`
+	Details []proto.Message `json:"details"`
+}
+
+func (e ErrResponse) MarshalJSON() ([]byte, error) {
+	type Alias struct {
+		Message string            `json:"message"`
+		Details []json.RawMessage `json:"details,omitempty"`
+	}
+
+	var details []json.RawMessage
+
+	for _, detail := range e.Details {
+		if detail != nil {
+			jsonBytes, err := ProtoMarshal(detail)
+			if err != nil {
+				return nil, fmt.Errorf("failed to marshal proto.Message to JSON: %w", err)
+			}
+
+			details = append(details, json.RawMessage(jsonBytes))
+		}
+	}
+
+	alias := Alias{
+		Message: e.Message,
+		Details: details,
+	}
+
+	return json.Marshal(alias)
+}
+
 func GetHTTPStatusFromError(err error) *HTTPError {
 	if err == nil {
 		return NewError(http.StatusOK, "")
-	}
-
-	if grpcStatus, ok := status.FromError(err); ok {
-		if httpStatus, ok := grpcToHTTPStatus[int(grpcStatus.Code())]; ok {
-			return NewError(httpStatus, grpcStatus.Message())
-		}
 	}
 
 	if errstatus, ok := err.(*HTTPError); ok {
 		return errstatus
 	}
 
-	return NewError(http.StatusInternalServerError, err.Error())
+	errCode := http.StatusInternalServerError
+	errResp := ErrResponse{}
+
+	if grpcStatus, ok := status.FromError(err); ok {
+		errResp.Message = grpcStatus.Message()
+
+		if httpStatus, ok := grpcToHTTPStatus[int(grpcStatus.Code())]; ok {
+			errCode = httpStatus
+
+			if len(grpcStatus.Details()) > 0 {
+				details := make([]proto.Message, 0, len(grpcStatus.Details()))
+
+				for _, detail := range grpcStatus.Details() {
+					if anyMsg, ok := detail.(proto.Message); ok {
+						details = append(details, anyMsg)
+					}
+				}
+
+				errResp.Details = details
+			}
+		}
+	}
+
+	message, err := json.Marshal(&errResp)
+	if err == nil {
+		return NewError(errCode, string(message))
+	}
+
+	return NewError(errCode, string(message))
 }

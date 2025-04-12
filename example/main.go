@@ -161,12 +161,12 @@ func (s *ExampleService) DeleteMessage(_ context.Context, req *pb.DeleteMessageR
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	_, ok := s.storage[req.GetId()]
+	_, ok := s.storage[int32(req.GetId())]
 	if !ok {
 		return nil, status.Errorf(http.StatusNotFound, "message not found")
 	}
 
-	delete(s.storage, req.GetId())
+	delete(s.storage, int32(req.GetId()))
 
 	return &pb.DeleteMessageResponse{}, nil
 }

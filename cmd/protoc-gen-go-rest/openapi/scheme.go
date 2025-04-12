@@ -52,8 +52,13 @@ func Field(field *protogen.Field, exclude []string) *openapi3.Schema {
 	switch field.Desc.Kind() {
 	case protoreflect.BoolKind:
 		fieldSchema = openapi3.NewBoolSchema()
-	case protoreflect.Int32Kind, protoreflect.Int64Kind, protoreflect.Uint32Kind, protoreflect.Uint64Kind:
+	case protoreflect.Int32Kind, protoreflect.Uint32Kind:
 		fieldSchema = openapi3.NewInt32Schema()
+	case protoreflect.Int64Kind, protoreflect.Uint64Kind:
+		fieldSchema = &openapi3.Schema{
+			Type:   &openapi3.Types{openapi3.TypeString},
+			Format: "int64",
+		}
 	case protoreflect.FloatKind, protoreflect.DoubleKind:
 		fieldSchema = openapi3.NewFloat64Schema()
 	case protoreflect.StringKind:
@@ -62,8 +67,10 @@ func Field(field *protogen.Field, exclude []string) *openapi3.Schema {
 		fieldSchema = openapi3.NewBytesSchema()
 	case protoreflect.MessageKind:
 		if field.Message.Desc.FullName() == "google.protobuf.Timestamp" {
-			fieldSchema = openapi3.NewStringSchema()
-			fieldSchema.Format = "date-time"
+			fieldSchema = &openapi3.Schema{
+				Type:   &openapi3.Types{openapi3.TypeString},
+				Format: "date-time",
+			}
 		} else if field.Message.Desc.FullName() == "google.protobuf.Struct" {
 			fieldSchema = openapi3.NewObjectSchema()
 		} else {

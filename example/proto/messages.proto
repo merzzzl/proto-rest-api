@@ -84,7 +84,7 @@ message GetMessageResponse {
 }
 
 message DeleteMessageRequest {
-  int32 id = 1; // Message ID
+  int64 id = 1; // Message ID
 }
 
 message DeleteMessageResponse {}

@@ -168,6 +168,14 @@ func RegisterExampleServiceHandler(router *runtime.Router, server ExampleService
 		return
 	}
 
+	router.Handle("GET", "/api/v1/example/messages/:id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
+		handlerExampleServiceWebServerGetMessage(server, w, r, p, interceptors)
+	})
+
+	router.Handle("DELETE", "/api/v1/example/messages/:id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
+		handlerExampleServiceWebServerDeleteMessage(server, w, r, p, interceptors)
+	})
+
 	router.Handle("GET", "/api/v1/example/messages", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerExampleServiceWebServerListMessages(server, w, r, p, interceptors)
 	})
@@ -182,14 +190,6 @@ func RegisterExampleServiceHandler(router *runtime.Router, server ExampleService
 
 	router.Handle("POST", "/api/v1/example/messages", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerExampleServiceWebServerPostMessage(server, w, r, p, interceptors)
-	})
-
-	router.Handle("GET", "/api/v1/example/messages/:id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
-		handlerExampleServiceWebServerGetMessage(server, w, r, p, interceptors)
-	})
-
-	router.Handle("DELETE", "/api/v1/example/messages/:id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
-		handlerExampleServiceWebServerDeleteMessage(server, w, r, p, interceptors)
 	})
 }
 
@@ -554,7 +554,7 @@ func handlerExampleServiceWebServerDeleteMessage(server ExampleServiceWebServer,
 
 	var protoReq DeleteMessageRequest
 
-	if v, err := runtime.ParseInt32(p.ByName("id")); err != nil {
+	if v, err := runtime.ParseInt64(p.ByName("id")); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 
 		if _, err := w.Write([]byte(err.Error())); err != nil {
@@ -626,10 +626,6 @@ func handlerExampleServiceWebServerListMessages(server ExampleServiceWebServer, 
 		}
 	}
 
-	if s := r.URL.Query().Get("author_name"); s != "" {
-		protoReq.AuthorName = &s
-	}
-
 	if l, ok := r.URL.Query()["per_page"]; ok {
 		for _, s := range l {
 			v, err := runtime.ParseInt32(s)
@@ -646,6 +642,12 @@ func handlerExampleServiceWebServerListMessages(server ExampleServiceWebServer, 
 			protoReq.PerPage = &v
 
 			continue
+		}
+	}
+
+	if l, ok := r.URL.Query()["statuses"]; ok {
+		for _, s := range l {
+			protoReq.Statuses = append(protoReq.Statuses, Status(Status_value[s]))
 		}
 	}
 
@@ -670,10 +672,8 @@ func handlerExampleServiceWebServerListMessages(server ExampleServiceWebServer, 
 		}
 	}
 
-	if l, ok := r.URL.Query()["statuses"]; ok {
-		for _, s := range l {
-			protoReq.Statuses = append(protoReq.Statuses, Status(Status_value[s]))
-		}
+	if s := r.URL.Query().Get("author_name"); s != "" {
+		protoReq.AuthorName = &s
 	}
 
 	msg, err := server.ListMessages(ctx, &protoReq)

@@ -25,6 +25,8 @@ func ProtoMarshal(m any) ([]byte, error) {
 		return nil, ErrMessageType
 	}
 
+	mopts := protojson.MarshalOptions{EmitUnpopulated: true}
+
 	//nolint:wrapcheck // native protojson error
-	return protojson.Marshal(pm)
+	return mopts.Marshal(pm)
 }

@@ -2,6 +2,7 @@ package gen
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/merzzzl/proto-rest-api/cmd/protoc-gen-go-rest/tools"
 	"google.golang.org/protobuf/compiler/protogen"
@@ -19,6 +20,8 @@ func ReadPath(g *protogen.GeneratedFile, method *protogen.Method, varName string
 	for param := range fields {
 		params = append(params, param)
 	}
+
+	slices.Sort(params)
 
 	for _, param := range params {
 		field := fields[param]

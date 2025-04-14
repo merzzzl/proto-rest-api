@@ -14,7 +14,14 @@ func ReadPath(g *protogen.GeneratedFile, method *protogen.Method, varName string
 		return fmt.Errorf("failed to get path fields for %s: %w", method.GoName, err)
 	}
 
-	for param, field := range fields {
+	params := make([]string, 0, len(fields))
+
+	for param := range fields {
+		params = append(params, param)
+	}
+
+	for _, param := range params {
+		field := fields[param]
 		fullGoName := tools.FieldFullNmae(method.Input, param)
 
 		if field.Desc.HasOptionalKeyword() {

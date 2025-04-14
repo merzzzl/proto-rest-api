@@ -40,6 +40,9 @@ func UnaryHandler(g *protogen.GeneratedFile, file *protogen.File, service *proto
 	g.P("defer cancel()")
 	g.P()
 
+	g.P("w.Header().Set(\"Content-Type\", \"application/json\")")
+	g.P()
+
 	g.P("ctx, err := ", runtimePackage.Ident("ApplyInterceptors"), "(ctx, r, il...)")
 	g.P("if err != nil {")
 	g.P("errstatus := ", runtimePackage.Ident("GetHTTPStatusFromError"), "(err)")

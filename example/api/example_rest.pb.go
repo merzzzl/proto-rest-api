@@ -149,16 +149,16 @@ func RegisterEchoServiceHandler(router *runtime.Router, server EchoServiceWebSer
 		return
 	}
 
+	router.Handle("POST", "/api/v1/blackhole/:channel", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
+		handlerEchoServiceWebServerBlackhole(server, w, r, p, interceptors)
+	})
+
 	router.Handle("GET", "/api/v1/echo/:channel", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerEchoServiceWebServerEcho(server, w, r, p, interceptors)
 	})
 
 	router.Handle("GET", "/api/v1/ticker/:count", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerEchoServiceWebServerTicker(server, w, r, p, interceptors)
-	})
-
-	router.Handle("POST", "/api/v1/blackhole/:channel", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
-		handlerEchoServiceWebServerBlackhole(server, w, r, p, interceptors)
 	})
 }
 
@@ -167,18 +167,6 @@ func RegisterExampleServiceHandler(router *runtime.Router, server ExampleService
 	if router == nil {
 		return
 	}
-
-	router.Handle("GET", "/api/v1/example/messages", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
-		handlerExampleServiceWebServerListMessages(server, w, r, p, interceptors)
-	})
-
-	router.Handle("PUT", "/api/v1/example/messages/:message.id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
-		handlerExampleServiceWebServerPutMessage(server, w, r, p, interceptors)
-	})
-
-	router.Handle("PATCH", "/api/v1/example/messages/:message.id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
-		handlerExampleServiceWebServerPatchMessage(server, w, r, p, interceptors)
-	})
 
 	router.Handle("POST", "/api/v1/example/messages", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerExampleServiceWebServerPostMessage(server, w, r, p, interceptors)
@@ -190,6 +178,18 @@ func RegisterExampleServiceHandler(router *runtime.Router, server ExampleService
 
 	router.Handle("DELETE", "/api/v1/example/messages/:id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerExampleServiceWebServerDeleteMessage(server, w, r, p, interceptors)
+	})
+
+	router.Handle("GET", "/api/v1/example/messages", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
+		handlerExampleServiceWebServerListMessages(server, w, r, p, interceptors)
+	})
+
+	router.Handle("PUT", "/api/v1/example/messages/:message.id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
+		handlerExampleServiceWebServerPutMessage(server, w, r, p, interceptors)
+	})
+
+	router.Handle("PATCH", "/api/v1/example/messages/:message.id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
+		handlerExampleServiceWebServerPatchMessage(server, w, r, p, interceptors)
 	})
 }
 
@@ -302,6 +302,8 @@ func handlerEchoServiceWebServerBlackhole(server EchoServiceWebServer, w http.Re
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
+	w.Header().Set("Content-Type", "application/json")
+
 	ctx, err := runtime.ApplyInterceptors(ctx, r, il...)
 	if err != nil {
 		errstatus := runtime.GetHTTPStatusFromError(err)
@@ -389,6 +391,8 @@ func handlerExampleServiceWebServerPostMessage(server ExampleServiceWebServer, w
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
+	w.Header().Set("Content-Type", "application/json")
+
 	ctx, err := runtime.ApplyInterceptors(ctx, r, il...)
 	if err != nil {
 		errstatus := runtime.GetHTTPStatusFromError(err)
@@ -475,6 +479,8 @@ func handlerExampleServiceWebServerGetMessage(server ExampleServiceWebServer, w 
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
+	w.Header().Set("Content-Type", "application/json")
+
 	ctx, err := runtime.ApplyInterceptors(ctx, r, il...)
 	if err != nil {
 		errstatus := runtime.GetHTTPStatusFromError(err)
@@ -538,6 +544,8 @@ func handlerExampleServiceWebServerDeleteMessage(server ExampleServiceWebServer,
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
+	w.Header().Set("Content-Type", "application/json")
+
 	ctx, err := runtime.ApplyInterceptors(ctx, r, il...)
 	if err != nil {
 		errstatus := runtime.GetHTTPStatusFromError(err)
@@ -591,6 +599,8 @@ func handlerExampleServiceWebServerListMessages(server ExampleServiceWebServer, 
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
+	w.Header().Set("Content-Type", "application/json")
+
 	ctx, err := runtime.ApplyInterceptors(ctx, r, il...)
 	if err != nil {
 		errstatus := runtime.GetHTTPStatusFromError(err)
@@ -606,44 +616,6 @@ func handlerExampleServiceWebServerListMessages(server ExampleServiceWebServer, 
 	ctx = runtime.ContextWithHeaders(ctx, r.Header)
 
 	var protoReq ListMessagesRequest
-
-	if l, ok := r.URL.Query()["page"]; ok {
-		for _, s := range l {
-			v, err := runtime.ParseInt32(s)
-			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-
-				if _, err := w.Write([]byte(err.Error())); err != nil {
-					w.WriteHeader(http.StatusInternalServerError)
-				}
-
-				return
-			}
-
-			protoReq.Page = &v
-
-			continue
-		}
-	}
-
-	if l, ok := r.URL.Query()["per_page"]; ok {
-		for _, s := range l {
-			v, err := runtime.ParseInt32(s)
-			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-
-				if _, err := w.Write([]byte(err.Error())); err != nil {
-					w.WriteHeader(http.StatusInternalServerError)
-				}
-
-				return
-			}
-
-			protoReq.PerPage = &v
-
-			continue
-		}
-	}
 
 	if l, ok := r.URL.Query()["ids"]; ok {
 		if len(l) == 1 && strings.Contains(l[0], ",") {
@@ -666,13 +638,51 @@ func handlerExampleServiceWebServerListMessages(server ExampleServiceWebServer, 
 		}
 	}
 
+	if l, ok := r.URL.Query()["statuses"]; ok {
+		for _, s := range l {
+			protoReq.Statuses = append(protoReq.Statuses, Status(Status_value[s]))
+		}
+	}
+
+	if l, ok := r.URL.Query()["page"]; ok {
+		for _, s := range l {
+			v, err := runtime.ParseInt32(s)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+
+				if _, err := w.Write([]byte(err.Error())); err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+				}
+
+				return
+			}
+
+			protoReq.Page = &v
+
+			continue
+		}
+	}
+
 	if s := r.URL.Query().Get("author_name"); s != "" {
 		protoReq.AuthorName = &s
 	}
 
-	if l, ok := r.URL.Query()["statuses"]; ok {
+	if l, ok := r.URL.Query()["per_page"]; ok {
 		for _, s := range l {
-			protoReq.Statuses = append(protoReq.Statuses, Status(Status_value[s]))
+			v, err := runtime.ParseInt32(s)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+
+				if _, err := w.Write([]byte(err.Error())); err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+				}
+
+				return
+			}
+
+			protoReq.PerPage = &v
+
+			continue
 		}
 	}
 
@@ -718,6 +728,8 @@ func (x *Message) MarshalJSON() ([]byte, error) {
 func handlerExampleServiceWebServerPutMessage(server ExampleServiceWebServer, w http.ResponseWriter, r *http.Request, p runtime.Params, il []runtime.Interceptor) {
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
+
+	w.Header().Set("Content-Type", "application/json")
 
 	ctx, err := runtime.ApplyInterceptors(ctx, r, il...)
 	if err != nil {
@@ -810,6 +822,8 @@ func handlerExampleServiceWebServerPutMessage(server ExampleServiceWebServer, w 
 func handlerExampleServiceWebServerPatchMessage(server ExampleServiceWebServer, w http.ResponseWriter, r *http.Request, p runtime.Params, il []runtime.Interceptor) {
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
+
+	w.Header().Set("Content-Type", "application/json")
 
 	ctx, err := runtime.ApplyInterceptors(ctx, r, il...)
 	if err != nil {

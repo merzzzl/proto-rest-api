@@ -3,6 +3,7 @@ package gen
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/merzzzl/proto-rest-api/cmd/protoc-gen-go-rest/tools"
@@ -48,6 +49,15 @@ func RegisterHandler(g *protogen.GeneratedFile, service *protogen.Service) error
 	if err != nil {
 		return fmt.Errorf("failed to get methods paths for %s: %w", service.GoName, err)
 	}
+
+	methods := make([]*protogen.Method, 0, len(paths))
+	for k := range paths {
+		methods = append(methods, k)
+	}
+
+	slices.SortFunc(methods, func(a, b *protogen.Method) int {
+		return strings.Compare(a.GoName, b.GoName)
+	})
 
 	for method, restRule := range paths {
 		g.P()

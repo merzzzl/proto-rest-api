@@ -59,9 +59,10 @@ func RegisterHandler(g *protogen.GeneratedFile, service *protogen.Service) error
 		return strings.Compare(a.GoName, b.GoName)
 	})
 
-	for method, restRule := range paths {
+	for _, method := range methods {
 		g.P()
 
+		restRule := paths[method]
 		subPath := restRule.GetPath()
 
 		if sep := strings.LastIndex(subPath, "?"); sep != -1 {

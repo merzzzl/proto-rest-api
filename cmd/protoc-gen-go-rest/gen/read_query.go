@@ -2,6 +2,7 @@ package gen
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/merzzzl/proto-rest-api/cmd/protoc-gen-go-rest/tools"
 	"google.golang.org/protobuf/compiler/protogen"
@@ -14,7 +15,16 @@ func ReadQuery(g *protogen.GeneratedFile, method *protogen.Method, varName strin
 		return fmt.Errorf("failed to get query fields for %s: %w", method.GoName, err)
 	}
 
-	for param, field := range fields {
+	params := make([]string, 0, len(fields))
+
+	for param := range fields {
+		params = append(params, param)
+	}
+
+	slices.Sort(params)
+
+	for _, param := range params {
+		field := fields[param]
 		fullGoName := tools.FieldFullNmae(method.Input, param)
 
 		switch field.Desc.Kind() {

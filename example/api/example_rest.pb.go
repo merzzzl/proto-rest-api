@@ -168,28 +168,28 @@ func RegisterExampleServiceHandler(router *runtime.Router, server ExampleService
 		return
 	}
 
-	router.Handle("POST", "/api/v1/example/messages", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
-		handlerExampleServiceWebServerPostMessage(server, w, r, p, interceptors)
+	router.Handle("DELETE", "/api/v1/example/messages/:id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
+		handlerExampleServiceWebServerDeleteMessage(server, w, r, p, interceptors)
 	})
 
 	router.Handle("GET", "/api/v1/example/messages/:id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerExampleServiceWebServerGetMessage(server, w, r, p, interceptors)
 	})
 
-	router.Handle("DELETE", "/api/v1/example/messages/:id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
-		handlerExampleServiceWebServerDeleteMessage(server, w, r, p, interceptors)
-	})
-
 	router.Handle("GET", "/api/v1/example/messages", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerExampleServiceWebServerListMessages(server, w, r, p, interceptors)
 	})
 
-	router.Handle("PUT", "/api/v1/example/messages/:message.id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
-		handlerExampleServiceWebServerPutMessage(server, w, r, p, interceptors)
-	})
-
 	router.Handle("PATCH", "/api/v1/example/messages/:message.id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
 		handlerExampleServiceWebServerPatchMessage(server, w, r, p, interceptors)
+	})
+
+	router.Handle("POST", "/api/v1/example/messages", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
+		handlerExampleServiceWebServerPostMessage(server, w, r, p, interceptors)
+	})
+
+	router.Handle("PUT", "/api/v1/example/messages/:message.id", func(w http.ResponseWriter, r *http.Request, p runtime.Params) {
+		handlerExampleServiceWebServerPutMessage(server, w, r, p, interceptors)
 	})
 }
 
@@ -617,6 +617,10 @@ func handlerExampleServiceWebServerListMessages(server ExampleServiceWebServer, 
 
 	var protoReq ListMessagesRequest
 
+	if s := r.URL.Query().Get("author_name"); s != "" {
+		protoReq.AuthorName = &s
+	}
+
 	if l, ok := r.URL.Query()["ids"]; ok {
 		if len(l) == 1 && strings.Contains(l[0], ",") {
 			l = strings.Split(l[0], ",")
@@ -635,12 +639,6 @@ func handlerExampleServiceWebServerListMessages(server ExampleServiceWebServer, 
 			}
 
 			protoReq.Ids = append(protoReq.Ids, v)
-		}
-	}
-
-	if l, ok := r.URL.Query()["statuses"]; ok {
-		for _, s := range l {
-			protoReq.Statuses = append(protoReq.Statuses, Status(Status_value[s]))
 		}
 	}
 
@@ -663,10 +661,6 @@ func handlerExampleServiceWebServerListMessages(server ExampleServiceWebServer, 
 		}
 	}
 
-	if s := r.URL.Query().Get("author_name"); s != "" {
-		protoReq.AuthorName = &s
-	}
-
 	if l, ok := r.URL.Query()["per_page"]; ok {
 		for _, s := range l {
 			v, err := runtime.ParseInt32(s)
@@ -683,6 +677,12 @@ func handlerExampleServiceWebServerListMessages(server ExampleServiceWebServer, 
 			protoReq.PerPage = &v
 
 			continue
+		}
+	}
+
+	if l, ok := r.URL.Query()["statuses"]; ok {
+		for _, s := range l {
+			protoReq.Statuses = append(protoReq.Statuses, Status(Status_value[s]))
 		}
 	}
 

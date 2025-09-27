@@ -132,5 +132,7 @@ func UnaryHandlerRequest(g *protogen.GeneratedFile, method *protogen.Method, res
 		g.P("}")
 	}
 
+	g.P()
+
 	return nil
 }

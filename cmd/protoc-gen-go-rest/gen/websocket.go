@@ -9,7 +9,7 @@ import (
 func WebSocket(g *protogen.GeneratedFile, service *protogen.Service) error {
 	for _, method := range service.Methods {
 		if !method.Desc.IsStreamingServer() && !method.Desc.IsStreamingClient() {
-			return nil
+			continue
 		}
 
 		WebSocketInreface(g, service, method)

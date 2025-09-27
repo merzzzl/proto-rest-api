@@ -34,7 +34,13 @@ func ReadQuery(g *protogen.GeneratedFile, method *protogen.Method, varName strin
 				g.P(varName, ".", fullGoName, " = &s")
 				g.P("}")
 			} else {
-				g.P(varName, ".", fullGoName, " = r.URL.Query().Get(\"", param, "\")")
+				if field.Desc.IsList() {
+					g.P("for _, s := range r.URL.Query()[\"", param, "\"] {")
+					g.P(varName, ".", fullGoName, " = append(", varName, ".", fullGoName, ", s)")
+					g.P("}")
+				} else {
+					g.P(varName, ".", fullGoName, " = r.URL.Query().Get(\"", param, "\")")
+				}
 			}
 		case protoreflect.EnumKind:
 			g.P("if l", ", ok := r.URL.Query()[\"", param, "\"]; ok {")

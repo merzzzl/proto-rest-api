@@ -39,7 +39,14 @@ func WebSocketStruct(g *protogen.GeneratedFile, service *protogen.Service, metho
 			return fmt.Errorf("failed to get field type for %s: %w", filed.GoName, err)
 		}
 
-		g.P(filed.GoName, " ", ftype)
+		switch {
+		case filed.Desc.HasOptionalKeyword():
+			g.P(filed.GoName, " *", ftype)
+		case filed.Desc.IsList():
+			g.P(filed.GoName, " []", ftype)
+		default:
+			g.P(filed.GoName, " ", ftype)
+		}
 	}
 
 	g.P(protogen.GoImportPath("google.golang.org/grpc").Ident("ServerStream"))
